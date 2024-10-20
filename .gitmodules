@@ -10,3 +10,6 @@
 [submodule "demos/Depends/gl_hpp"]
 	path = demos/Depends/gl_hpp
 	url = https://github.com/VirtuosoChris/glhpp
+[submodule "demos/Depends/SFML"]
+	path = demos/Depends/SFML
+	url = git@github.com:SFML/SFML.git
