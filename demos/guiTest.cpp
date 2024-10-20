@@ -52,42 +52,42 @@ void makeGLSLRules(Virtuoso::io::RegexFormatter::RuleSet& rules)
     {
         Virtuoso::io::RegexFormatter::Rule r;
         r.rule = std::regex(Virtuoso::io::makeKeywordsRegexStr(glsl_types, glsl_types_length));
-        r.filter = std::bind(Virtuoso::io::highlightKeyword,  TEXT_COLOR_CYAN, std::placeholders::_1);
+        r.filter = std::bind(Virtuoso::io::highlightKeyword,  std::string(TEXT_COLOR_CYAN), std::placeholders::_1);
         rules.push_back(r);
     }
     
     {
            Virtuoso::io::RegexFormatter::Rule r;
            r.rule = std::regex("\/\/.*");
-        r.filter = std::bind(Virtuoso::io::highlightKeyword,  TEXT_COLOR_RED, std::placeholders::_1);
+        r.filter = std::bind(Virtuoso::io::highlightKeyword,   std::string(TEXT_COLOR_RED), std::placeholders::_1);
            rules.push_back(r);
     }
 
     {// c-style comment
         Virtuoso::io::RegexFormatter::Rule r;
         r.rule = std::regex("(/\\*([^*]|(\\*+[^*/]))*\\*+/)|(//.*)");
-        r.filter = std::bind(Virtuoso::io::highlightKeyword,  TEXT_COLOR_RED, std::placeholders::_1);
+        r.filter = std::bind(Virtuoso::io::highlightKeyword,   std::string(TEXT_COLOR_RED), std::placeholders::_1);
         rules.push_back(r);
     }
 
     {
         Virtuoso::io::RegexFormatter::Rule r;
         r.rule = std::regex(Virtuoso::io::makeKeywordsRegexStr(glsl_keywords, glsl_keywords_length));
-        r.filter = std::bind(Virtuoso::io::highlightKeyword,  TEXT_COLOR_BLUE, std::placeholders::_1);
+        r.filter = std::bind(Virtuoso::io::highlightKeyword,   std::string(TEXT_COLOR_BLUE), std::placeholders::_1);
         rules.push_back(r);
     }
 
     {
         Virtuoso::io::RegexFormatter::Rule r;
         r.rule = std::regex(Virtuoso::io::makeKeywordsRegexStr(glsl_functions, glsl_functions_length));
-        r.filter = std::bind(Virtuoso::io::highlightKeyword,  TEXT_COLOR_MAGENTA, std::placeholders::_1);
+        r.filter = std::bind(Virtuoso::io::highlightKeyword,   std::string(TEXT_COLOR_MAGENTA), std::placeholders::_1);
         rules.push_back(r);
     }
 
     {
         Virtuoso::io::RegexFormatter::Rule r;
         r.rule = std::regex(Virtuoso::io::makeKeywordsRegexStr(glsl_qualifiers, glsl_qualifiers_length));
-        r.filter = std::bind(Virtuoso::io::highlightKeyword,  TEXT_COLOR_YELLOW, std::placeholders::_1);
+        r.filter = std::bind(Virtuoso::io::highlightKeyword,   std::string(TEXT_COLOR_YELLOW), std::placeholders::_1);
         rules.push_back(r);
     }
 }
@@ -185,7 +185,7 @@ struct ConsoleApplication : public GLFWApplication
         }
         
         bool pople = true;
-        console3.render("console 2 implementation", &pople);
+        console3.render("console 2 implementation", pople);
         
         ImGui::EndFrame();
         ImGui::Render();

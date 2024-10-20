@@ -1,3 +1,5 @@
+
+#include <cassert>
 //
 //  GLFWApplication.h
 //  VirtuosoConsole

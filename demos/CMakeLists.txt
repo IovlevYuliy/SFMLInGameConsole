@@ -24,6 +24,7 @@ add_executable(GuiTest guiTest.cpp
 Depends/imgui/imgui.cpp 
 Depends/imgui/imgui_widgets.cpp
 Depends/imgui/imgui_draw.cpp
+Depends/imgui/misc/cpp/imgui_stdlib.cpp
 )
 
 target_include_directories(GuiTest PUBLIC "Depends")
