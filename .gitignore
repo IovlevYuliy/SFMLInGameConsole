@@ -102,3 +102,4 @@ BUILD/CMakeFiles/3.3.0/CompilerIdCXX/CompilerIdCXX.build/Debug/CompilerIdCXX.bui
 .DS_Store
 
 demos/build
+.vscode/
