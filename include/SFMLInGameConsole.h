@@ -398,16 +398,11 @@ inline void SFMLInGameConsole::Render(sf::RenderTarget* window) {
     return;
   }
 
-  background_rect_.setPosition({0.F, 100.F});
   background_rect_.setFillColor(sf::Color(0u, 0u, 0u, 140u));
   background_rect_.setSize(sf::Vector2f(
       window->getSize().x, window->getSize().y * kConsoleHeightPart));
 
   UpdateDrawnText();
-
-  input_line_.setPosition(input_line_.getPosition() + sf::Vector2f(0.F, 100.F));
-  output_text_.setPosition(output_text_.getPosition() +
-                           sf::Vector2f(0.F, 100.F));
 
   window->draw(background_rect_);
   window->draw(output_text_);

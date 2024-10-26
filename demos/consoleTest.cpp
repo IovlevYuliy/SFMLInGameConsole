@@ -1,4 +1,4 @@
-#include "../QuakeStyleConsole.h"
+#include "../include/QuakeStyleConsole.h"
 
 using namespace Virtuoso;
 

@@ -21,9 +21,9 @@
 #include <imgui/examples/imgui_impl_glfw.h>
 #include <imgui/examples/imgui_impl_glfw.cpp>
 
-#include "../ConsoleFormatting.h"
+#include "../include/ConsoleFormatting.h"
 
-#include "../IMGUIQuakeConsole.h"
+#include "../include/IMGUIQuakeConsole.h"
 
 // push glsl state
 // multiline comment
@@ -55,7 +55,7 @@ void makeGLSLRules(Virtuoso::io::RegexFormatter::RuleSet& rules)
         r.filter = std::bind(Virtuoso::io::highlightKeyword,  std::string(TEXT_COLOR_CYAN), std::placeholders::_1);
         rules.push_back(r);
     }
-    
+
     {
            Virtuoso::io::RegexFormatter::Rule r;
            r.rule = std::regex("\/\/.*");
