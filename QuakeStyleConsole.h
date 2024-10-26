@@ -23,13 +23,13 @@
  -- echo : eg. echo health - prints the value of the variable to the console
  -- set : eg. set health 25 - sets the value of a variable in the console
  -- runFile <filename> - execute all the commands in a file as if the user typed them in sequence.
- 
+
  --$: Strings prefixed with $ are interpreted as variable names to dereference, and the identifiers will be replaced in the input with the variable value - eg.
  var x listCmd
  help $x # will be processed as "help listCmd"
- 
+
  --Lines starting with # are counted as comments and ignored
- 
+
 **/
 
 /*
@@ -307,7 +307,7 @@ class QuakeStyleConsole
     void populateTemps(std::istream &is, FirstType &in);
 
     /// for parsing arguments to C++ functions bound to the console. variadic template that recursively parses our function arguments in order.  base case
-    void populateTemps(std::istream &is) {}
+    void populateTemps(std::istream &) {}
 
     /// for parsing arguments to C++ functions bound to the console.  call starts populating temp variables
     template <typename... Args>
@@ -514,7 +514,7 @@ inline void Virtuoso::QuakeStyleConsole::bindCVar(const std::string &str, T &var
         };
 
     cvarPrintFTable[str] =
-        [this, &var](std::istream &is, std::ostream &os) {
+        [this, &var](std::istream &, std::ostream &os) {
             this->printCvar<T>(os, &var);
         };
 
@@ -572,12 +572,12 @@ inline void Virtuoso::QuakeStyleConsole::bindDynamicCVar(const std::string &var,
     std::shared_ptr<T> ptr(new T(valueIn));
 
     cvarReadFTable[var] =
-        [this, ptr](std::istream &is, std::ostream &os) {
+        [this, ptr](std::istream &is, std::ostream &) {
             this->assignDynamicVariable<T>(is, ptr);
         };
 
     cvarPrintFTable[var] =
-        [this, ptr](std::istream &is, std::ostream &os) {
+        [this, ptr](std::istream &, std::ostream &os) {
             this->writeDynamicVariable<T>(os, ptr);
         };
 }
@@ -772,7 +772,7 @@ inline void Virtuoso::QuakeStyleConsole::commandExecute(std::istream &is, std::o
 
     std::string x;
 
-    while (lineStream >> x)
+    if (lineStream >> x)
     {
         CommandTable::const_iterator it = commandTable.find(x);
 
@@ -784,8 +784,6 @@ inline void Virtuoso::QuakeStyleConsole::commandExecute(std::istream &is, std::o
         {
             (it->second)(lineStream, os); //execute the command
         }
-
-        os << '\n';
     }
 }
 
@@ -801,17 +799,17 @@ inline void Virtuoso::QuakeStyleConsole::bindBasicCommands()
                 "Type var <varname> <value> to declare a dynamic variable with name <varname> and value <value>."
                 "\nVariable names are any space delimited string and variable value is set to the remainder of the line.");
 
-    bindCommand("listCmd", [this](std::istream &is, std::ostream &os) { this->listCmd(os); }, "lists the available console commands");
+    bindCommand("listCmd", [this](std::istream &, std::ostream &os) { this->listCmd(os); }, "lists the available console commands");
 
     bindCommand("set", [this](std::istream &is, std::ostream &os) { this->commandSet(is, os); }, "type set <identifier> <val> to change the value of a cvar");
 
     bindCommand("echo", [this](std::istream &is, std::ostream &os) { this->commandEcho(is, os); }, "type echo <identifier> to print the value of a cvar");
 
-    bindCommand("listCVars", [this](std::istream &is, std::ostream &os) { listCVars(os); }, "lists the bound cvars");
+    bindCommand("listCVars", [this](std::istream &, std::ostream &os) { listCVars(os); }, "lists the bound cvars");
 
     bindCommand("help", [this](std::istream &is, std::ostream &os) { this->commandHelp(is, os); }, "you're a smartass");
 
-    bindCommand("listHelp", [this](std::istream &is, std::ostream &os) { this->listHelp(os); }, "lists the available help topics");
+    bindCommand("listHelp", [this](std::istream &, std::ostream &os) { this->listHelp(os); }, "lists the available help topics");
 
     bindCommand("runFile", [this](std::istream &is, std::ostream &os) {
         std::string f;
