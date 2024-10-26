@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 project(VirtuosoConsole)
@@ -54,9 +54,11 @@ target_link_libraries(imguiDemo glfw)
 
 add_executable(sfmlDemo sfmlDemo.cpp
 ../include/QuakeStyleConsole.h
-../include/SFMLInGameConsole.h
+../include/SFMLInGameConsole.hpp
+../include/ConsoleBuffer.hpp
 ../include/RichText.hpp
 ../src/RichText.cpp
+../src/SFMLInGameConsole.cpp
 )
 
 target_include_directories(sfmlDemo PRIVATE "../include")

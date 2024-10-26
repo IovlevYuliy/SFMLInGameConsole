@@ -1,6 +1,6 @@
 #include <SFML/Graphics.hpp>
 
-#include "../include/SFMLInGameConsole.h"
+#include "../include/SFMLInGameConsole.hpp"
 #include "cassert"
 
 int main() {
