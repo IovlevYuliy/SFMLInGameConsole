@@ -51,8 +51,8 @@ namespace Virtuoso
 
 class QuakeStyleConsole
 {
-  public:                                               // the methods in this section are what you should use in your code
-    static const unsigned int defaultHistorySize = 10u; ///size of the history file
+  public:                                                // the methods in this section are what you should use in your code
+    static const unsigned int defaultHistorySize = 100u; ///size of the history file
 
     typedef std::function<void(std::istream &is, std::ostream &os)> ConsoleFunc;
 
@@ -531,7 +531,7 @@ void Virtuoso::QuakeStyleConsole::setCvar(std::istream &is, std::ostream &os, T 
 
     if (is.fail())
     {
-        os << error() << "SYNTAX ERROR IN VARIABLE PARSER" << std::endl;
+        os << error() << "Syntax error in variable parser" << std::endl;
         is.clear();
     }
     else
@@ -889,7 +889,7 @@ inline void Virtuoso::QuakeStyleConsole::dereferenceVariables(std::istream &is, 
 
         if (substrEnd == varBase)
         {
-            os << error() << "EXPECTED IDENTIFIER AT $" << std::endl;
+            os << error() << "Expected identifier at $" << std::endl;
         }
         else
         {

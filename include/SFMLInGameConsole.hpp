@@ -56,10 +56,6 @@ class RenderTarget;
 
 namespace sfe {
 
-constexpr float kConsoleHeightPart = 0.6F;
-constexpr float kTextLeftOffset = 0.01F;
-constexpr size_t kCommandBufferSize = 100;
-
 inline constexpr std::string_view TEXT_COLOR_RESET = "\u001b[0m";
 inline constexpr std::string_view TEXT_COLOR_BLACK = "\u001b[30m";
 inline constexpr std::string_view TEXT_COLOR_RED = "\u001b[31m";
@@ -113,16 +109,24 @@ class MultiStream : public std::ostream {
 /// ostream, so you can write to it with << and pass it to ostream functions You
 /// can also get its streambuf and pass it to another ostream, such as cout so
 /// that those ostreams write to the console.  eg.  cout.rdbuf(console.rdbuf())
-class SFMLInGameConsole : public MultiStream {
+class SFMLInGameConsole : protected Virtuoso::QuakeStyleConsole,
+                          public MultiStream {
  public:
+  static constexpr sf::Color kDefaultBackgroundColor{0u, 0u, 0u, 140u};
+
   SFMLInGameConsole(sf::Font font);
+
+  // Setters
+  void SetBackgroundColor(sf::Color color);
+  void SetFontScale(float scale);
+  void SetPosition(sf::Vector2f pos);
+  void SetMaxInputLineSymbols(size_t count);
+  void SetTextLeftOffset(float offset_part);
+  void SetConsoleHeightPart(float height_part);
 
   sf::Font* Font();  ///< Returns pointer to the current font
 
-  void clear() {
-    console_buffer_.clear();
-    scroll_offset_y_ = 0.F;
-  }  ///< clear the output pane
+  void clear();  ///< clear the output pane
 
   void show(bool v = true);
 
@@ -140,16 +144,19 @@ class SFMLInGameConsole : public MultiStream {
 
   void UpdateDrawnText();
 
-  Virtuoso::QuakeStyleConsole
-      console_;  ///< implementation of the quake style console
-
   ConsoleBuffer console_buffer_;  ///< custom streambuf
   std::ostream console_stream_;
 
   std::string buffer_text_;
   int scroll_offset_y_ = 0;
   float all_lines_height_ = 0.F;
+  size_t max_input_line_symbols_ = 100u;
+  float text_left_offset_part_ = 0.005F;
+  float console_height_part_ = 0.6F;
 
+  sf::Vector2f position_;
+  // SFML rendering variables
+  sf::Color background_color_ = kDefaultBackgroundColor;
   sf::Font font_;
   sf::RectangleShape background_rect_;
   sfe::RichText output_text_;

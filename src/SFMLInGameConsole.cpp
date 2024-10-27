@@ -4,17 +4,75 @@
 
 namespace sfe {
 
+namespace {
+
+constexpr size_t kCommandBufferSize = 100;
+
+inline sf::Color GetAnsiTextColor(AnsiColorCode code) {
+  switch (code) {
+    case ANSI_RESET:
+      return sf::Color::White;
+    case ANSI_BLACK:
+      return sf::Color::Black;
+    case ANSI_RED:
+      return sf::Color::Red;
+    case ANSI_GREEN:
+      return sf::Color::Green;
+    case ANSI_YELLOW:
+      return sf::Color::Yellow;
+    case ANSI_BLUE:
+      return sf::Color::Blue;
+    case ANSI_MAGENTA:
+      return sf::Color::Magenta;
+    case ANSI_CYAN:
+      return sf::Color::Cyan;
+    case ANSI_WHITE:
+      return sf::Color::White;
+    default:
+      return sf::Color::Black;
+  }
+}
+
+}  // namespace
+
 SFMLInGameConsole::SFMLInGameConsole(sf::Font font)
-    : console_(kCommandBufferSize),
+    : Virtuoso::QuakeStyleConsole(kCommandBufferSize),
       console_stream_(&console_buffer_),
       font_(std::move(font)) {
   AddStream(console_stream_);
 
-  console_.bindMemberCommand("clear", *this, &SFMLInGameConsole::clear,
-                             "Clear the console");
-  console_.bindCVar("consoleTextScale", font_scale_);
+  bindMemberCommand("clear", *this, &SFMLInGameConsole::clear,
+                    "Clear the console");
+  style = {{"\u001b[31m[error]: ", std::string(TEXT_COLOR_RESET)},
+           {"\u001b[33m[warning]: ", std::string(TEXT_COLOR_RESET)},
+           {"\u001b[32m> ", std::string(TEXT_COLOR_RESET)}};
+}
 
-  console_.style = Virtuoso::QuakeStyleConsole::ConsoleStylingColor();
+void SFMLInGameConsole::SetBackgroundColor(sf::Color color) {
+  background_color_ = std::move(color);
+}
+
+void SFMLInGameConsole::SetFontScale(float scale) { font_scale_ = scale; }
+
+void SFMLInGameConsole::SetMaxInputLineSymbols(size_t count) {
+  max_input_line_symbols_ = count;
+}
+
+void SFMLInGameConsole::SetPosition(sf::Vector2f pos) {
+  position_ = std::move(pos);
+}
+
+void SFMLInGameConsole::SetTextLeftOffset(float offset_part) {
+  text_left_offset_part_ = std::clamp(offset_part, 0.F, 1.F);
+}
+
+void SFMLInGameConsole::SetConsoleHeightPart(float height_part) {
+  console_height_part_ = height_part;
+}
+
+void SFMLInGameConsole::clear() {
+  console_buffer_.clear();
+  scroll_offset_y_ = 0.F;
 }
 
 sf::Font* SFMLInGameConsole::Font() { return &font_; }
@@ -32,7 +90,8 @@ void SFMLInGameConsole::UpdateDrawnText() {
 
   const float input_line_height = input_line_.getGlobalBounds().height;
   const float console_height = background_rect_.getSize().y;
-  const float left_offset = background_rect_.getSize().x * kTextLeftOffset;
+  const float left_offset =
+      background_rect_.getSize().x * text_left_offset_part_;
   const float free_height = console_height - input_line_height;
 
   // Set the position of input line at console's bottom.
@@ -77,7 +136,7 @@ void SFMLInGameConsole::UpdateDrawnText() {
   for (int i = begin; i < end; ++i) {
     for (const auto& seq : lines[i].sequences) {
       if (!seq.text.empty()) {
-        output_text_ << seq.text_color << seq.text;
+        output_text_ << GetAnsiTextColor(seq.color_code) << seq.text;
       }
     }
     if (i + 1 < end) {
@@ -93,6 +152,10 @@ void SFMLInGameConsole::UpdateDrawnText() {
   } else {
     output_text_.setPosition({left_offset, 0.F});
   }
+
+  // Apply current console position.
+  output_text_.move(position_);
+  input_line_.move(position_);
 }
 
 void SFMLInGameConsole::HandleUIEvent(const sf::Event& e) {
@@ -110,7 +173,7 @@ void SFMLInGameConsole::HandleUIEvent(const sf::Event& e) {
         }
         return;
       case sf::Keyboard::Enter:
-        console_.commandExecute(buffer_text_, (*this));
+        commandExecute(buffer_text_, (*this));
         buffer_text_.clear();
         history_pos_ = -1;
         cursor_pos_ = 0;
@@ -144,10 +207,8 @@ void SFMLInGameConsole::HandleUIEvent(const sf::Event& e) {
     }
   } else if (e.type == sf::Event::TextEntered) {
     // handle ASCII characters only, skipping backspace and delete
-    if (e.text.unicode > 31 &&
-        e.text.unicode <
-            127)  // TODO: && m_commandBuffer.size() < maxBufferLength
-    {
+    if (e.text.unicode > 31 && e.text.unicode < 127 &&
+        buffer_text_.size() < max_input_line_symbols_) {
       buffer_text_.insert(cursor_pos_, 1, static_cast<char>(e.text.unicode));
       ++cursor_pos_;
     }
@@ -159,9 +220,10 @@ void SFMLInGameConsole::Render(sf::RenderTarget* window) {
     return;
   }
 
-  background_rect_.setFillColor(sf::Color(0u, 0u, 0u, 140u));
+  background_rect_.setPosition(position_);
+  background_rect_.setFillColor(background_color_);
   background_rect_.setSize(sf::Vector2f(
-      window->getSize().x, window->getSize().y * kConsoleHeightPart));
+      window->getSize().x, window->getSize().y * console_height_part_));
 
   UpdateDrawnText();
 
@@ -188,21 +250,20 @@ void SFMLInGameConsole::HistoryCallback(const sf::Event& e) {
   const int prev_history_pos = history_pos_;
   if (e.key.code == sf::Keyboard::Up) {
     if (history_pos_ == -1) {
-      history_pos_ = static_cast<int>(console_.historyBuffer().size()) - 1;
+      history_pos_ = static_cast<int>(historyBuffer().size()) - 1;
     } else if (history_pos_ > 0) {
       history_pos_--;
     }
   } else if (e.key.code == sf::Keyboard::Down) {
     if (history_pos_ != -1) {
-      if (++history_pos_ >= static_cast<int>(console_.historyBuffer().size())) {
+      if (++history_pos_ >= static_cast<int>(historyBuffer().size())) {
         history_pos_ = -1;
       }
     }
   }
 
   if (prev_history_pos != history_pos_) {
-    buffer_text_ =
-        history_pos_ >= 0 ? console_.historyBuffer()[history_pos_] : "";
+    buffer_text_ = history_pos_ >= 0 ? historyBuffer()[history_pos_] : "";
     cursor_pos_ = buffer_text_.size();
   }
 }
@@ -228,16 +289,16 @@ void SFMLInGameConsole::TextCompletionCallback() {
   std::vector<std::string> candidates;
 
   // autocomplete commands...
-  for (auto it = console_.getCommandTable().begin();
-       it != console_.getCommandTable().end(); it++) {
+  for (auto it = getCommandTable().begin(); it != getCommandTable().end();
+       it++) {
     if (it->first.starts_with(cur_word)) {
       candidates.emplace_back(it->first);
     }
   }
 
   // ... and autcomplete variables
-  for (auto it = console_.getCVarReadTable().begin();
-       it != console_.getCVarReadTable().end(); it++) {
+  for (auto it = getCVarReadTable().begin(); it != getCVarReadTable().end();
+       it++) {
     if (it->first.starts_with(cur_word)) {
       candidates.emplace_back(it->first);
     }

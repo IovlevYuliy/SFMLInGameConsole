@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SFML/Graphics/Color.hpp>
-
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -22,31 +20,6 @@ enum AnsiColorCode {
   ANSI_WHITE = 37,
 };
 
-inline sf::Color GetAnsiTextColor(AnsiColorCode code) {
-  switch (code) {
-    case ANSI_RESET:
-      return sf::Color::White;
-    case ANSI_BLACK:
-      return sf::Color::Black;
-    case ANSI_RED:
-      return sf::Color::Red;
-    case ANSI_GREEN:
-      return sf::Color::Green;
-    case ANSI_YELLOW:
-      return sf::Color::Yellow;
-    case ANSI_BLUE:
-      return sf::Color::Blue;
-    case ANSI_MAGENTA:
-      return sf::Color::Magenta;
-    case ANSI_CYAN:
-      return sf::Color::Cyan;
-    case ANSI_WHITE:
-      return sf::Color::White;
-    default:
-      return sf::Color::Black;
-  }
-}
-
 /// Stream Buffer for the IMGUI Console Terminal.  Breaks text stream into
 /// Lines, which are an array of formatted text sequences Formatting is
 /// presently handled via ANSI Color Codes.  Some other input transformation can
@@ -57,7 +30,7 @@ class ConsoleBuffer : public std::streambuf {
   ConsoleBuffer();
 
   struct TextSequence {
-    sf::Color text_color = sf::Color::White;
+    AnsiColorCode color_code = AnsiColorCode::ANSI_WHITE;
     std::string text = "";
   };
 
@@ -92,7 +65,7 @@ class ConsoleBuffer : public std::streambuf {
   inline std::string& CurrentWord() { return CurrentLine().CurSequence().text; }
 
   ///< ANSI color code we last saw for text
-  sf::Color cur_text_color = sf::Color::White;
+  AnsiColorCode cur_color_code = AnsiColorCode::ANSI_WHITE;
 
   // ANSI color code parser state variable
   bool parsing_ansi_code = false;
@@ -111,7 +84,7 @@ class ConsoleBuffer : public std::streambuf {
 inline void ConsoleBuffer::clear() {
   lines.clear();
   lines.emplace_back();
-  CurrentLine().sequences.emplace_back(sf::Color::White, "");
+  CurrentLine().sequences.emplace_back(AnsiColorCode::ANSI_WHITE, "");
 }
 
 inline void ConsoleBuffer::ProcessANSICode(int code) {
@@ -125,7 +98,7 @@ inline void ConsoleBuffer::ProcessANSICode(int code) {
     case ANSI_MAGENTA:
     case ANSI_CYAN:
     case ANSI_WHITE:
-      cur_text_color = GetAnsiTextColor(static_cast<AnsiColorCode>(code));
+      cur_color_code = static_cast<AnsiColorCode>(code);
       break;
     default:
       std::cerr << "unknown ansi code " << code << " in output\n";
@@ -150,7 +123,7 @@ inline int ConsoleBuffer::overflow(int c) {
               ProcessANSICode(x);
             }
             num_parse_stream.clear();
-            CurrentLine().sequences.emplace_back(cur_text_color, "");
+            CurrentLine().sequences.emplace_back(cur_color_code, "");
             break;
           }
           case '[': {
@@ -190,7 +163,7 @@ inline int ConsoleBuffer::overflow(int c) {
         case '\n': {
           // currentline add \n
           lines.emplace_back();
-          CurrentLine().sequences.emplace_back(cur_text_color, "");
+          CurrentLine().sequences.emplace_back(cur_color_code, "");
           break;
         }
         default: {
@@ -205,7 +178,7 @@ inline int ConsoleBuffer::overflow(int c) {
 inline ConsoleBuffer::ConsoleBuffer() {
   lines.emplace_back();
   // start a new run of chars with default formatting
-  CurrentLine().sequences.emplace_back(sf::Color::White, "");
+  CurrentLine().sequences.emplace_back(AnsiColorCode::ANSI_WHITE, "");
 }
 
 }  // namespace sfe

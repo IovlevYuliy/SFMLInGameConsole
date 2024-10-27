@@ -13,6 +13,9 @@ int main() {
 
   sfe::SFMLInGameConsole console(font);
   console.show(true);
+  console.SetTextLeftOffset(0.F);
+  console.SetMaxInputLineSymbols(20);
+  console.SetConsoleHeightPart(0.7);
 
   while (window.isOpen()) {
     sf::Event event;

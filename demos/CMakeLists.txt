@@ -52,14 +52,10 @@ target_link_libraries(imguiDemo glfw)
 ####### SFML DEMO  #####
 ########################
 
-add_executable(sfmlDemo sfmlDemo.cpp
-../include/QuakeStyleConsole.h
-../include/SFMLInGameConsole.hpp
-../include/ConsoleBuffer.hpp
-../include/RichText.hpp
-../src/RichText.cpp
-../src/SFMLInGameConsole.cpp
-)
+add_executable(sfmlDemo sfmlDemo.cpp)
+
+file(GLOB SOURCES "../src/*")
+target_sources(sfmlDemo PRIVATE ${SOURCES})
 
 target_include_directories(sfmlDemo PRIVATE "../include")
 
