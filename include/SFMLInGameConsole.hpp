@@ -102,7 +102,7 @@ class MultiStream : public std::ostream {
 /// ostream, so you can write to it with << and pass it to ostream functions You
 /// can also get its streambuf and pass it to another ostream, such as cout so
 /// that those ostreams write to the console.  eg.  cout.rdbuf(console.rdbuf())
-class SFMLInGameConsole : protected Virtuoso::QuakeStyleConsole,
+class SFMLInGameConsole : public Virtuoso::QuakeStyleConsole,
                           public MultiStream {
  public:
   static constexpr sf::Color kDefaultBackgroundColor{0u, 0u, 0u, 140u};
