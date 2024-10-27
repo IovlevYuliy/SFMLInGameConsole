@@ -52,7 +52,7 @@ SFMLInGameConsole::SFMLInGameConsole(sf::Font font)
                     "Clear the console");
   style = {{"\u001b[31m[error]: ", std::string(TEXT_COLOR_RESET)},
            {"\u001b[33m[warning]: ", std::string(TEXT_COLOR_RESET)},
-           {"\u001b[32m> ", std::string(TEXT_COLOR_RESET)}};
+           {"\u001b[37m> ", std::string(TEXT_COLOR_RESET)}};
 }
 
 void SFMLInGameConsole::SetBackgroundColor(sf::Color color) {
