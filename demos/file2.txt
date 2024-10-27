@@ -1,5 +1,0 @@
-   help 
-		listCmd
-#listCmd
-help listCmd
-

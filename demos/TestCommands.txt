@@ -1,5 +1,0 @@
-echo health
-set health 100
-echo health
-runFile file2.txt
-

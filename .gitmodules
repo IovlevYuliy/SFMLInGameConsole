@@ -1,15 +1,15 @@
-[submodule "demos/Depends/imgui"]
-	path = demos/Depends/imgui
+[submodule "demos/3rdParty/imgui"]
+	path = demos/3rdParty/imgui
 	url = https://github.com/ocornut/imgui
-[submodule "demos/Depends/glhpp"]
-	path = demos/Depends/glhpp
+[submodule "demos/3rdParty/glhpp"]
+	path = demos/3rdParty/glhpp
 	url = https://github.com/Steve132/glhpp
-[submodule "demos/Depends/glfw"]
-	path = demos/Depends/glfw
+[submodule "demos/3rdParty/glfw"]
+	path = demos/3rdParty/glfw
 	url = https://github.com/glfw/glfw
-[submodule "demos/Depends/gl_hpp"]
-	path = demos/Depends/gl_hpp
+[submodule "demos/3rdParty/gl_hpp"]
+	path = demos/3rdParty/gl_hpp
 	url = https://github.com/VirtuosoChris/glhpp
-[submodule "demos/Depends/SFML"]
-	path = demos/Depends/SFML
+[submodule "demos/3rdParty/SFML"]
+	path = demos/3rdParty/SFML
 	url = git@github.com:SFML/SFML.git
