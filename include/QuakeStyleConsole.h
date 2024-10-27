@@ -16,7 +16,7 @@
  (For API Usage, see the class documentation immediately below)
  -- help : When using the console, type help to get general information, or help <topic> to print the help string on a given topic
  -- listCmd lists the commands bound to the console.
- --listCVars lists all the variables bound to the console.
+ --listVars lists all the variables bound to the console.
  --listHelp lists all the topics available for the help command
  --var : You can create new variables in the console itself (in addition to from client code, see below) by using var :
  eg, "var health 100"
@@ -264,7 +264,7 @@ class QuakeStyleConsole
     void listCmd(std::ostream &os) const;
 
     ///dumps a list of bound cvars to the output stream
-    void listCVars(std::ostream &os) const;
+    void listVars(std::ostream &os) const;
 
     ///dumps a list of available help topics to the output stream
     void listHelp(std::ostream &os) const;
@@ -609,7 +609,7 @@ inline void Virtuoso::QuakeStyleConsole::executeFile(const std::string &x, std::
 inline void Virtuoso::QuakeStyleConsole::commandHelp(std::istream &is, std::ostream &os)
 {
     const char *genericHelp = "Type 'help' followed by the name of a command or variable to get help on that topic if available."
-                              "\nType listCmd, listCVars, and listHelp to print lists of the available commands, variables, and help topics."
+                              "\nType listCmd, listVars, and listHelp to print lists of the available commands, variables, and help topics."
                               "\nUse $<varname> to dereference a variable in a command argument list and use # to comment the rest of a line";
 
     std::string x;
@@ -659,7 +659,7 @@ inline void Virtuoso::QuakeStyleConsole::listCmd(std::ostream &os) const
     os << std::endl;
 }
 
-inline void Virtuoso::QuakeStyleConsole::listCVars(std::ostream &os) const
+inline void Virtuoso::QuakeStyleConsole::listVars(std::ostream &os) const
 {
     os << "\nBound console variables:";
 
@@ -805,7 +805,7 @@ inline void Virtuoso::QuakeStyleConsole::bindBasicCommands()
 
     bindCommand("echo", [this](std::istream &is, std::ostream &os) { this->commandEcho(is, os); }, "type echo <identifier> to print the value of a cvar");
 
-    bindCommand("listCVars", [this](std::istream &, std::ostream &os) { listCVars(os); }, "lists the bound cvars");
+    bindCommand("listVars", [this](std::istream &, std::ostream &os) { listVars(os); }, "lists the bound cvars");
 
     bindCommand("help", [this](std::istream &is, std::ostream &os) { this->commandHelp(is, os); }, "you're a smartass");
 

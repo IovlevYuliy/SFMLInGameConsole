@@ -33,6 +33,13 @@ inline sf::Color GetAnsiTextColor(AnsiColorCode code) {
   }
 }
 
+inline std::string GetFirstWord(const std::string& str) {
+  std::istringstream istream(str);
+  std::string firstWord;
+  istream >> firstWord;
+  return firstWord;
+}
+
 }  // namespace
 
 SFMLInGameConsole::SFMLInGameConsole(sf::Font font)
@@ -68,6 +75,11 @@ void SFMLInGameConsole::SetTextLeftOffset(float offset_part) {
 
 void SFMLInGameConsole::SetConsoleHeightPart(float height_part) {
   console_height_part_ = height_part;
+}
+
+void SFMLInGameConsole::SetCommandKeywords(const std::string& cmd_name,
+                                           std::vector<std::string> keywords) {
+  cmd_keywords_.insert({cmd_name, std::move(keywords)});
 }
 
 void SFMLInGameConsole::clear() {
@@ -180,7 +192,7 @@ void SFMLInGameConsole::HandleUIEvent(const sf::Event& e) {
         scroll_offset_y_ = 0;
         return;
       case sf::Keyboard::Tab:
-        TextCompletionCallback();
+        TextAutocompleteCallback();
         return;
       case sf::Keyboard::Up:
         if (e.key.shift) {
@@ -268,41 +280,69 @@ void SFMLInGameConsole::HistoryCallback(const sf::Event& e) {
   }
 }
 
-void SFMLInGameConsole::TextCompletionCallback() {
-  // Locate beginning of current word
+std::vector<std::string> SFMLInGameConsole::GetCandidatesForAutocomplete(
+    const std::string& cur_word, bool is_first_word) const {
+  // No autocomplete for an empty line
+  if (cur_word.empty()) {
+    return {};
+  }
+
+  // Build a list of candidates.
+  std::vector<std::string> candidates;
+
+  if (is_first_word) {
+    // If it's first word in the line autocomplete commands...
+    for (auto it = getCommandTable().begin(); it != getCommandTable().end();
+         it++) {
+      if (it->first.starts_with(cur_word)) {
+        candidates.emplace_back(it->first);
+      }
+    }
+  }
+
+  if (!is_first_word) {
+    // Autocomplete variables.
+    for (auto it = getCVarReadTable().begin(); it != getCVarReadTable().end();
+         it++) {
+      if (it->first.starts_with(cur_word)) {
+        candidates.emplace_back(it->first);
+      }
+    }
+    // Autocomplete keywords for a particular command.
+    const std::string cmd_name = GetFirstWord(buffer_text_);
+    if (cmd_keywords_.contains(cmd_name)) {
+      for (auto it = cmd_keywords_.at(cmd_name).begin();
+           it != cmd_keywords_.at(cmd_name).end(); it++) {
+        if (it->starts_with(cur_word)) {
+          candidates.emplace_back(*it);
+        }
+      }
+    }
+  }
+
+  return candidates;
+}
+
+void SFMLInGameConsole::TextAutocompleteCallback() {
+  // Locate beginning of current word.
   size_t word_start_pos = cursor_pos_;
   while (word_start_pos > 0) {
     const char c = buffer_text_[word_start_pos - 1];
-    if (c == ' ' || c == '\t' || c == ',' || c == ';') break;
+    if (std::isspace(static_cast<unsigned char>(c))) {
+      break;
+    }
     word_start_pos--;
   }
+
+  const bool is_first_word = std::all_of(
+      buffer_text_.begin(), buffer_text_.begin() + word_start_pos - 1,
+      [](const char c) { return std::isspace(static_cast<unsigned char>(c)); });
 
   const std::string cur_word =
       buffer_text_.substr(word_start_pos, cursor_pos_ - word_start_pos);
 
-  // No autocompletion for an empty line
-  if (cur_word.empty()) {
-    return;
-  }
-
-  // Build a list of candidates
-  std::vector<std::string> candidates;
-
-  // autocomplete commands...
-  for (auto it = getCommandTable().begin(); it != getCommandTable().end();
-       it++) {
-    if (it->first.starts_with(cur_word)) {
-      candidates.emplace_back(it->first);
-    }
-  }
-
-  // ... and autcomplete variables
-  for (auto it = getCVarReadTable().begin(); it != getCVarReadTable().end();
-       it++) {
-    if (it->first.starts_with(cur_word)) {
-      candidates.emplace_back(it->first);
-    }
-  }
+  const std::vector<std::string> candidates =
+      GetCandidatesForAutocomplete(cur_word, is_first_word);
 
   // No matches at all.
   if (candidates.empty()) {
@@ -315,7 +355,7 @@ void SFMLInGameConsole::TextCompletionCallback() {
     buffer_text_.replace(word_start_pos, candidates[0].size(), candidates[0]);
     cursor_pos_ = buffer_text_.size();
   } else {
-    // Multiple matches. Complete as much as we can..
+    // Multiple matches. Complete as much as we can...
     // So inputing "C"+Tab will complete to "CL" then display "CLEAR" and
     // "CLASSIFY" as matches.
     int match_len = cur_word.size();

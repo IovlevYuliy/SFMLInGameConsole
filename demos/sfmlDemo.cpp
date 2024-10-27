@@ -1,10 +1,11 @@
 #include <SFML/Graphics.hpp>
 
 #include "../include/SFMLInGameConsole.hpp"
+
 #include "cassert"
 
 int main() {
-  sf::RenderWindow window(sf::VideoMode({1280u, 720u}), "sfe::RichText");
+  sf::RenderWindow window(sf::VideoMode({1280u, 720u}), "SFML Game Console");
   window.setFramerateLimit(30);
 
   sf::Font font;
@@ -16,6 +17,8 @@ int main() {
   console.SetTextLeftOffset(0.F);
   console.SetMaxInputLineSymbols(20);
   console.SetConsoleHeightPart(0.7);
+
+  //console.SetCommandKeywords("clear", {"a", "b", "c", "aa", "bc", "abcd"});
 
   while (window.isOpen()) {
     sf::Event event;

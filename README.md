@@ -33,7 +33,7 @@ echo: prints the value of a variable
 help:  With no arguments, prints a general help string on how to use the console. 
 With an argument string naming a variable or a command, prints the help string for that variable or command.  
 
-listCVars : list all variables bound to the console, including dynamically created ones
+listVars : list all variables bound to the console, including dynamically created ones
 
 listCmd : lists all commands bound to the console. 
 

@@ -9,7 +9,7 @@
 /// For example programs see the demos folder in this repo.
 ///
 /// The easiest way to use this file is to include it and then create an
-/// SFMLInGameConsole in an application that supports IMGUI rendering, then call
+/// SFMLInGameConsole in an application that supports SFML rendering, then call
 /// SFMLInGameConsole::Render during your application update loop.  CTRL-F
 /// SFMLInGameConsole class definition and look at the sample code in the demos
 /// filter to get started.
@@ -17,16 +17,10 @@
 /// This file contains base classes, out of which the SFMLInGameConsole is
 /// composed, and you can experiment with as well.
 ///
-/// The text area of the console is an IMGUIOstream, which inherits from
-/// std::ostream and you can do all the things that implies. The IMGUIOstream's
+/// The text area of the console is an ConsoleBuffer, which inherits from
+/// std::ostream and you can do all the things that implies. The ConsoleBuffer's
 /// streambuf parses ANSI color codes so you can add color formatting that way.
 ///
-/// IMGUIInputLine handles some IMGUI callbacks, and pushes user input into a
-/// stringstream on enter.  You can get the stream directly or get a line.
-///
-/// Both the Input Line and the Ostream have render methods that draw them in
-/// whatever surrounding IMGUI context the caller has, and also helper methods
-/// to draw them in their own windows.
 ///
 /// a MultiStream is an ostream that forwards input to multiple other ostreams.
 /// The console widget is a 'multistream' so you can mirror console output to a
@@ -103,7 +97,6 @@ class MultiStream : public std::ostream {
   void AddStream(std::ostream& str) { buf.streams.insert(&str); }
 };
 
-/// Quake style console : IMGUI Widget
 /// The widget IS-A MultiStream, so you can call .addStream() to add additional
 /// streams to mirror the output - like a file or cout A MultiStream IS-A
 /// ostream, so you can write to it with << and pass it to ostream functions You
@@ -124,6 +117,9 @@ class SFMLInGameConsole : protected Virtuoso::QuakeStyleConsole,
   void SetTextLeftOffset(float offset_part);
   void SetConsoleHeightPart(float height_part);
 
+  void SetCommandKeywords(const std::string& cmd_name,
+                          std::vector<std::string> keywords);
+
   sf::Font* Font();  ///< Returns pointer to the current font
 
   void clear();  ///< clear the output pane
@@ -140,9 +136,17 @@ class SFMLInGameConsole : protected Virtuoso::QuakeStyleConsole,
  private:
   void ScrollCallback(const sf::Event& e);
   void HistoryCallback(const sf::Event& e);
-  void TextCompletionCallback();
+  void TextAutocompleteCallback();
+
+  std::vector<std::string> GetCandidatesForAutocomplete(
+      const std::string& cur_word, bool is_first_word) const;
 
   void UpdateDrawnText();
+
+  typedef std::unordered_map<std::string, std::vector<std::string>>
+      CommandKeywordsMapping;
+
+  CommandKeywordsMapping cmd_keywords_;
 
   ConsoleBuffer console_buffer_;  ///< custom streambuf
   std::ostream console_stream_;
