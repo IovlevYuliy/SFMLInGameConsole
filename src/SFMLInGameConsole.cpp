@@ -282,11 +282,6 @@ void SFMLInGameConsole::HistoryCallback(const sf::Event& e) {
 
 std::vector<std::string> SFMLInGameConsole::GetCandidatesForAutocomplete(
     const std::string& cur_word, bool is_first_word) const {
-  // No autocomplete for an empty line
-  if (cur_word.empty()) {
-    return {};
-  }
-
   // Build a list of candidates.
   std::vector<std::string> candidates;
 
@@ -383,9 +378,14 @@ void SFMLInGameConsole::TextAutocompleteCallback() {
 
     // List matches
     (*this) << "Possible matches:\n";
+    constexpr static size_t kMatchesInLine = 5;
     for (size_t i = 0; i < candidates.size(); i++) {
-      (*this) << "- " << candidates[i] << '\n';
+      if (i && !(i % kMatchesInLine)) {
+        (*this) << '\n';
+      }
+      (*this) << candidates[i] << '\t';
     }
+    (*this) << '\n';
   }
 }
 
