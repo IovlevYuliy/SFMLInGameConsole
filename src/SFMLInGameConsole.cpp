@@ -315,6 +315,7 @@ std::vector<std::string> SFMLInGameConsole::GetCandidatesForAutocomplete(
     }
   }
 
+  std::sort(candidates.begin(), candidates.end());
   return candidates;
 }
 
