@@ -114,6 +114,10 @@ class QuakeStyleConsole
     template <typename... Args>
     void bindCommand(const std::string &commandName, std::function<void(Args...)> fun, const std::string &help = "");
 
+    ///add a command to the console using universal reference object with arbitrary arguments, then set the associated help string to the optional "help" argument
+    template <typename Func>
+    void bindCommand(const std::string &commandName, Func&& func, const std::string &help = "");
+
     /// same as bindCommand, but for a member function of an object.  Object instance is first argument after the command name
     template <typename O, typename... Args>
     void bindMemberCommand(const std::string &commandName, O &obj, void (O::*fptr)(Args...), const std::string &help = "");
@@ -490,6 +494,12 @@ inline void Virtuoso::QuakeStyleConsole::bindCommand(const std::string &str, std
 
     if (help.length())
         setHelpTopic(str, help);
+}
+
+template <typename Func>
+inline void Virtuoso::QuakeStyleConsole::bindCommand(const std::string &commandName, Func&& func, const std::string &help) {
+    auto wrappedFunc = std::function{std::forward<Func>(func)};
+    bindCommand(commandName, wrappedFunc, help);
 }
 
 inline void Virtuoso::QuakeStyleConsole::bindCommand(const std::string &str, ConsoleFunc fun, const std::string &help)
