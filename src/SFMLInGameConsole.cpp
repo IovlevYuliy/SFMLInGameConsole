@@ -6,8 +6,10 @@ namespace sfe {
 
 namespace {
 
+// Size of the command buffer for storing command history.
 constexpr size_t kCommandBufferSize = 100;
 
+// Helper function to map ANSI color codes to SFML colors.
 inline sf::Color GetAnsiTextColor(AnsiColorCode code) {
   switch (code) {
     case ANSI_RESET:
@@ -33,6 +35,7 @@ inline sf::Color GetAnsiTextColor(AnsiColorCode code) {
   }
 }
 
+// Extracts and returns the first word from a given string.
 inline std::string GetFirstWord(const std::string& str) {
   std::istringstream istream(str);
   std::string firstWord;
@@ -42,6 +45,7 @@ inline std::string GetFirstWord(const std::string& str) {
 
 }  // namespace
 
+// Constructor for initializing the console with a font.
 SFMLInGameConsole::SFMLInGameConsole(sf::Font font)
     : Virtuoso::QuakeStyleConsole(kCommandBufferSize),
       console_stream_(&console_buffer_),
@@ -50,6 +54,7 @@ SFMLInGameConsole::SFMLInGameConsole(sf::Font font)
 
   bindMemberCommand("clear", *this, &SFMLInGameConsole::clear,
                     "Clear the console");
+  // Overrides default styling for different message types.
   style = {{"\u001b[31m[error]: ", std::string(TEXT_COLOR_RESET)},
            {"\u001b[33m[warning]: ", std::string(TEXT_COLOR_RESET)},
            {"\u001b[37m> ", std::string(TEXT_COLOR_RESET)}};
@@ -93,7 +98,9 @@ void SFMLInGameConsole::show(bool v) { shown_ = v; }
 
 bool SFMLInGameConsole::visible() const { return shown_; }
 
+/// Updates the rendered text based on the console's internal state and buffer.
 void SFMLInGameConsole::UpdateDrawnText() {
+  // Clear and set up input line with the cursor at the appropriate position.
   input_line_.clear();
   input_line_.setFont(font_);
   input_line_.setScale({font_scale_, font_scale_});
@@ -106,9 +113,10 @@ void SFMLInGameConsole::UpdateDrawnText() {
       background_rect_.getSize().x * text_left_offset_part_;
   const float free_height = console_height - input_line_height;
 
-  // Set the position of input line at console's bottom.
+  // Position input line at the bottom of the console.
   input_line_.setPosition({left_offset, console_height - input_line_height});
 
+  // Prepare visible lines and text bounds for rendering.
   const auto& lines = console_buffer_.GetLines();
   int last_line_idx = static_cast<int>(lines.size());
   if (lines.back().IsEmpty()) {
@@ -140,6 +148,7 @@ void SFMLInGameConsole::UpdateDrawnText() {
     }
   }
 
+  // Prepare and position the output text.
   output_text_.clear();
   output_text_.setFont(font_);
   output_text_.setScale({font_scale_, font_scale_});
@@ -158,6 +167,7 @@ void SFMLInGameConsole::UpdateDrawnText() {
 
   all_lines_height_ = temp_text.getGlobalBounds().height;
 
+  // Adjust vertical position based on text height.
   if (all_lines_height_ > free_height) {
     output_text_.setPosition(
         {left_offset, free_height - output_text_.getGlobalBounds().height});
@@ -170,6 +180,7 @@ void SFMLInGameConsole::UpdateDrawnText() {
   input_line_.move(position_);
 }
 
+// Processes user input events for interacting with the console.
 void SFMLInGameConsole::HandleUIEvent(const sf::Event& e) {
   if (e.type == sf::Event::KeyPressed) {
     switch (e.key.code) {
@@ -218,7 +229,7 @@ void SFMLInGameConsole::HandleUIEvent(const sf::Event& e) {
         return;
     }
   } else if (e.type == sf::Event::TextEntered) {
-    // handle ASCII characters only, skipping backspace and delete
+    // ASCII characters only; skips backspace and delete
     if (e.text.unicode > 31 && e.text.unicode < 127 &&
         buffer_text_.size() < max_input_line_symbols_) {
       buffer_text_.insert(cursor_pos_, 1, static_cast<char>(e.text.unicode));
@@ -227,6 +238,7 @@ void SFMLInGameConsole::HandleUIEvent(const sf::Event& e) {
   }
 }
 
+// Renders the console background, output text, and input line.
 void SFMLInGameConsole::Render(sf::RenderTarget* window) {
   if (!shown_) {
     return;
@@ -244,6 +256,7 @@ void SFMLInGameConsole::Render(sf::RenderTarget* window) {
   window->draw(input_line_);
 }
 
+// Adjusts scroll position based on key events.
 void SFMLInGameConsole::ScrollCallback(const sf::Event& e) {
   const float input_line_height = input_line_.getGlobalBounds().height;
   const float overflow_height = std::max(
@@ -258,6 +271,7 @@ void SFMLInGameConsole::ScrollCallback(const sf::Event& e) {
   }
 }
 
+// Handles navigation of command history for past commands.
 void SFMLInGameConsole::HistoryCallback(const sf::Event& e) {
   const int prev_history_pos = history_pos_;
   if (e.key.code == sf::Keyboard::Up) {
@@ -280,13 +294,14 @@ void SFMLInGameConsole::HistoryCallback(const sf::Event& e) {
   }
 }
 
+// Retrieves autocomplete suggestions based on the current input.
 std::vector<std::string> SFMLInGameConsole::GetCandidatesForAutocomplete(
     const std::string& cur_word, bool is_first_word) const {
   // Build a list of candidates.
   std::vector<std::string> candidates;
 
   if (is_first_word) {
-    // If it's first word in the line autocomplete commands...
+    // Autocomplete for command names.
     for (auto it = getCommandTable().begin(); it != getCommandTable().end();
          it++) {
       if (it->first.starts_with(cur_word)) {
@@ -319,6 +334,7 @@ std::vector<std::string> SFMLInGameConsole::GetCandidatesForAutocomplete(
   return candidates;
 }
 
+// Handles autocompletion logic based on input and available suggestions.
 void SFMLInGameConsole::TextAutocompleteCallback() {
   // Locate beginning of current word.
   size_t word_start_pos = cursor_pos_;
@@ -345,13 +361,13 @@ void SFMLInGameConsole::TextAutocompleteCallback() {
     return;
   }
 
-  if (candidates.size() == 1)  // Single match.
+  if (candidates.size() == 1) // Single match completion.
   {
     buffer_text_.resize(word_start_pos + candidates[0].size());
     buffer_text_.replace(word_start_pos, candidates[0].size(), candidates[0]);
     cursor_pos_ = buffer_text_.size();
   } else {
-    // Multiple matches. Complete as much as we can...
+    // Multiple matches - partial completion.
     // So inputing "C"+Tab will complete to "CL" then display "CLEAR" and
     // "CLASSIFY" as matches.
     int match_len = cur_word.size();
@@ -377,7 +393,7 @@ void SFMLInGameConsole::TextAutocompleteCallback() {
       cursor_pos_ = buffer_text_.size();
     }
 
-    // List matches
+    // Display possible matches.
     (*this) << "Possible matches:\n";
     constexpr static size_t kMatchesInLine = 5;
     for (size_t i = 0; i < candidates.size(); i++) {
