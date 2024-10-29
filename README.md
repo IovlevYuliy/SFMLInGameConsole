@@ -115,6 +115,7 @@ int main() {
   }
 }
 ```
+![Screenshot from 2024-10-29 17-49-42](https://github.com/user-attachments/assets/d1729834-998a-4208-a3c7-fcc138ee4f67)
 
 #### Customization
 
