@@ -1,35 +1,24 @@
 ///
-///  SFMLInGameConsole.h - Single Header Quake Console Library
-///  Created by Yuliy Iovlev on 10/26/24.
+/// SFMLInGameConsole.hpp
+/// Created by Yuliy Iovlev on 10/26/24.
 ///
-/// This file is a single header frontend gui widget corresponding to (and
-/// depending on) QuakeStyleConsole.h in this repository
+/// This file provides a GUI widget based on SFML for in-game console
+/// functionality, dependent on QuakeStyleConsole.h within this repository.
 ///
+/// Usage:
+/// Include the headers and sources in your project and instantiate
+/// SFMLInGameConsole within an SFML application. Call SFMLInGameConsole::Render
+/// during the application's update loop to display the console.
+/// For examples, see the demos folder.
 ///
-/// For example programs see the demos folder in this repo.
+/// Components:
+/// - ConsoleBuffer: Manages the console's text area, supports ANSI color codes.
+/// - MultiStream: A derived ostream that duplicates output across multiple
+/// streams.
 ///
-/// The easiest way to use this file is to include it and then create an
-/// SFMLInGameConsole in an application that supports SFML rendering, then call
-/// SFMLInGameConsole::Render during your application update loop.  CTRL-F
-/// SFMLInGameConsole class definition and look at the sample code in the demos
-/// filter to get started.
+/// License:
+/// Available under MIT or public domain license; choose whichever you prefer.
 ///
-/// This file contains base classes, out of which the SFMLInGameConsole is
-/// composed, and you can experiment with as well.
-///
-/// The text area of the console is an ConsoleBuffer, which inherits from
-/// std::ostream and you can do all the things that implies. The ConsoleBuffer's
-/// streambuf parses ANSI color codes so you can add color formatting that way.
-///
-///
-/// a MultiStream is an ostream that forw`rds input to multiple other ostreams.
-/// The console widget is a 'multistream' so you can mirror console output to a
-/// file or cout or whatever other streams you need.
-
-/*
- This software is available under 2 licenses -- choose whichever you prefer.
- Either MIT or public domain.
-*/
 
 #pragma once
 
@@ -50,6 +39,7 @@ class RenderTarget;
 
 namespace sfe {
 
+// ANSI color codes for text formatting within the console.
 inline constexpr std::string_view TEXT_COLOR_RESET = "\u001b[0m";
 inline constexpr std::string_view TEXT_COLOR_BLACK = "\u001b[30m";
 inline constexpr std::string_view TEXT_COLOR_RED = "\u001b[31m";
@@ -60,13 +50,16 @@ inline constexpr std::string_view TEXT_COLOR_MAGENTA = "\u001b[35m";
 inline constexpr std::string_view TEXT_COLOR_CYAN = "\u001b[36m";
 inline constexpr std::string_view TEXT_COLOR_WHITE = "\u001b[37m";
 
-/// streambuffer implementation for MultiStream
+// MultiStreamBuffer class: streambuffer implementation that forwards input to
+// multiple ostreams.
 class MultiStreamBuffer : public std::streambuf {
  public:
+  // Set of output streams to forward data to.
   std::unordered_set<std::ostream*> streams;
 
   MultiStreamBuffer() {}
 
+  // Overrides overflow to write a single character to each ostream in streams.
   int overflow(int in) override {
     char c = in;  ///\todo check for eof, etc?
     for (std::ostream* str : streams) {
@@ -75,6 +68,7 @@ class MultiStreamBuffer : public std::streambuf {
     return 1;
   }
 
+  // Override xsputn to write a string of characters to each ostream in streams.
   std::streamsize xsputn(const char* s, std::streamsize n) override {
     std::streamsize ssz = 0;
 
@@ -86,92 +80,125 @@ class MultiStreamBuffer : public std::streambuf {
   }
 };
 
-/// An ostream that is actually a container of ostream pointers, that pipes
-/// output to every ostream in the container
+// MultiStream class: ostream that duplicates output to multiple other streams.
 class MultiStream : public std::ostream {
+  // Underlying buffer for managing output duplication.
   MultiStreamBuffer buf;
 
  public:
   MultiStream() : std::ostream(&buf) {}
 
+  // Adds a stream to the buffer, allowing output to be mirrored to it.
   void AddStream(std::ostream& str) { buf.streams.insert(&str); }
 };
 
-/// The widget IS-A MultiStream, so you can call .addStream() to add additional
-/// streams to mirror the output - like a file or cout A MultiStream IS-A
-/// ostream, so you can write to it with << and pass it to ostream functions You
-/// can also get its streambuf and pass it to another ostream, such as cout so
-/// that those ostreams write to the console.  eg.  cout.rdbuf(console.rdbuf())
+/// SFMLInGameConsole class: main class representing an in-game console widget
+/// using SFML. Extends QuakeStyleConsole and MultiStream for SFML-based
+/// rendering and stream duplication.
 class SFMLInGameConsole : public Virtuoso::QuakeStyleConsole,
                           public MultiStream {
  public:
+  // Default console background color.
   static constexpr sf::Color kDefaultBackgroundColor{0u, 0u, 0u, 140u};
 
+  // Constructor that initializes the console with a given font.
   SFMLInGameConsole(sf::Font font);
 
-  // Setters
+  // Setters for configuring console appearance and behavior.
+
+  // Sets the console background color.
   void SetBackgroundColor(sf::Color color);
+  // Sets the font scaling factor.
   void SetFontScale(float scale);
+  // Sets the position of the console relative to the render target.
   void SetPosition(sf::Vector2f pos);
+  // Sets the maximum symbols in the input line.
   void SetMaxInputLineSymbols(size_t count);
+  // Sets the offset for text from the left margin.
   void SetTextLeftOffset(float offset_part);
+  // Sets the console's height as a fraction of the render target height.
   void SetConsoleHeightPart(float height_part);
 
+  /// Registers command keywords for autocomplete functionality.
   void SetCommandKeywords(const std::string& cmd_name,
                           std::vector<std::string> keywords);
 
-  sf::Font* Font();  ///< Returns pointer to the current font
-
-  void clear();  ///< clear the output pane
-
+  // Returns pointer to the current font.
+  sf::Font* Font();
+  // Clears the output pane.
+  void clear();
+  // Sets the console visibility.
   void show(bool v = true);
-
+  // Returns whether the console is currently visible.
   bool visible() const;
-
+  // Handles user input events, updating console behavior based on interactions.
   void HandleUIEvent(const sf::Event& e);
 
-  // Renders the console in the provided target based on its sizes
+  // Renders the console to a specified SFML RenderTarget (window or other
+  // renderable).
   void Render(sf::RenderTarget* window);
 
  private:
-  void ScrollCallback(const sf::Event& e);
-  void HistoryCallback(const sf::Event& e);
-  void TextAutocompleteCallback();
+  // Event handlers and internal functionality for specific input and rendering
+  // behaviors.
+  void ScrollCallback(const sf::Event& e);  // Handles scroll events.
+  void HistoryCallback(
+      const sf::Event& e);          // Handles up/down history navigation.
+  void TextAutocompleteCallback();  // Handles text autocomplete actions.
 
+  /// Gets possible autocomplete suggestions for a word, based on commands and
+  /// keywords.
   std::vector<std::string> GetCandidatesForAutocomplete(
       const std::string& cur_word, bool is_first_word) const;
 
+  // Updates text rendering for the current output.
   void UpdateDrawnText();
 
   typedef std::unordered_map<std::string, std::vector<std::string>>
       CommandKeywordsMapping;
 
+  // Map of commands and their associated keywords.
   CommandKeywordsMapping cmd_keywords_;
 
-  ConsoleBuffer console_buffer_;  ///< custom streambuf
+  // Custom buffer for the console's output pane.
+  ConsoleBuffer console_buffer_;
+  // Stream for handling console output.
   std::ostream console_stream_;
 
+  // Text buffer for console input.
   std::string buffer_text_;
+  // Vertical scroll offset for console content.
   int scroll_offset_y_ = 0;
+  // Total height of all displayed lines.
   float all_lines_height_ = 0.F;
+  // Max characters for a single line of input.
   size_t max_input_line_symbols_ = 100u;
+  // Left offset for console text rendering.
   float text_left_offset_part_ = 0.005F;
+  // Console height as a percentage of screen height.
   float console_height_part_ = 0.6F;
 
+  // Position of the console on the screen.
   sf::Vector2f position_;
-  // SFML rendering variables
+  // Background color for the console.
   sf::Color background_color_ = kDefaultBackgroundColor;
+  // Font used for console text.
   sf::Font font_;
+  // Rectangle shape for console background.
   sf::RectangleShape background_rect_;
+  // Rich text object for output text formatting.
   sfe::RichText output_text_;
+  // Rich text object for input line formatting.
   sfe::RichText input_line_;
 
+  // Boolean indicating if the console is shown.
   bool shown_ = false;
-  // Index into the console history buffer, for when we
-  // press up/down arrow to scroll previous commands
+  // Current position in command history for navigation.
   int history_pos_ = -1;
+  // Cursor position in the input line.
   size_t cursor_pos_ = 0;
-  float font_scale_ = 0.6F;  ///< text scale for the console widget window
+  // Scaling factor for console text.
+  float font_scale_ = 0.6F;
 };
 
 }  // namespace sfe
