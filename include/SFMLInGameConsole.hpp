@@ -22,7 +22,7 @@
 /// streambuf parses ANSI color codes so you can add color formatting that way.
 ///
 ///
-/// a MultiStream is an ostream that forwards input to multiple other ostreams.
+/// a MultiStream is an ostream that forw`rds input to multiple other ostreams.
 /// The console widget is a 'multistream' so you can mirror console output to a
 /// file or cout or whatever other streams you need.
 

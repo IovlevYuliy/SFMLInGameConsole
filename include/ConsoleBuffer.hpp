@@ -7,6 +7,8 @@
 
 namespace sfe {
 
+// Enumeration of ANSI color codes for console output.
+// These codes are used to format text with specific colors in the terminal.
 enum AnsiColorCode {
   ANSI_RESET = 0,
 
@@ -20,20 +22,25 @@ enum AnsiColorCode {
   ANSI_WHITE = 37,
 };
 
-/// Stream Buffer for the IMGUI Console Terminal.  Breaks text stream into
-/// Lines, which are an array of formatted text sequences Formatting is
-/// presently handled via ANSI Color Codes.  Some other input transformation can
-/// be applied to the input before it hits this stream eg. to do syntax
-/// highlighting, etc.
+// Console buffer for the UI widget. This buffer splits a stream of text
+// into lines (`Line`), each of which contains one or more formatted sequences
+// (`TextSequence`). Formatting is currently achieved via ANSI color codes.
+// Additional input transformations (e.g., syntax highlighting) can be applied
+// to the input before passing it to this stream.
 class ConsoleBuffer : public std::streambuf {
  public:
   ConsoleBuffer();
 
+  // Represents a sequence of text with an associated ANSI color code.
   struct TextSequence {
+    // Color code for this text sequence.
     AnsiColorCode color_code = AnsiColorCode::ANSI_WHITE;
+    // Text content of the sequence.
     std::string text = "";
   };
 
+  // Represents a line of text, potentially containing multiple `TextSequence`
+  // objects, each with separate color formatting.
   struct Line {
     std::vector<TextSequence> sequences;
 
@@ -44,36 +51,45 @@ class ConsoleBuffer : public std::streambuf {
       return sequences[sequences.size() - 1];
     }
 
+    // Checks if the line contains only empty text sequences.
     inline bool IsEmpty() const {
       return std::all_of(sequences.begin(), sequences.end(),
                          [](const auto& seq) { return seq.text.empty(); });
     }
   };
 
+  // Clears the entire console buffer, resetting it to an initial empty state.
   void clear();
 
+  // Returns all lines in the buffer.
   inline const std::vector<Line>& GetLines() const { return lines; }
 
  protected:
-  int overflow(int c) override;  // -- streambuf overloads --
+  // Streambuf override method for handling overflow.
+  // This method is responsible for processing each character added to the
+  // stream, handling both regular text and ANSI color codes.
+  int overflow(int c) override;
 
-  /// change formatting state based on an integer code in the ansi-code input
-  /// stream.  Called by the streambuf methods
+  // Processes an ANSI code from the input stream, updating the current
+  // formatting state.
+  /// @param code The ANSI code to process.
   inline void ProcessANSICode(int code);
 
+  // Returns the current line being processed.
   inline Line& CurrentLine() { return lines[lines.size() - 1]; }
+  // Returns the current word (text) sequence in the current line.
   inline std::string& CurrentWord() { return CurrentLine().CurSequence().text; }
 
-  ///< ANSI color code we last saw for text
+  // Last used ANSI color code.
   AnsiColorCode cur_color_code = AnsiColorCode::ANSI_WHITE;
 
-  // ANSI color code parser state variable
+  // Tracks if currently parsing an ANSI color code.
   bool parsing_ansi_code = false;
-  // ANSI color code parser is listening for next digit
+  // Tracks if waiting for a digit in an ANSI sequence.
   bool listening_digits = false;
-  // ANSI color code parser accumulator
+  // Accumulates digits for ANSI code parsing.
   std::stringstream num_parse_stream;
-  // All output lines
+  // All lines in the console buffer.
   std::vector<Line> lines;
 };
 
@@ -87,6 +103,9 @@ inline void ConsoleBuffer::clear() {
   CurrentLine().sequences.emplace_back(AnsiColorCode::ANSI_WHITE, "");
 }
 
+// Processes a given ANSI code, updating the current color code based on the
+// input.
+/// @param code The ANSI color code to interpret and apply.
 inline void ConsoleBuffer::ProcessANSICode(int code) {
   switch (code) {
     case ANSI_RESET:
@@ -106,6 +125,9 @@ inline void ConsoleBuffer::ProcessANSICode(int code) {
   }
 }
 
+// Handles characters pushed to the stream, managing text and ANSI sequences.
+/// @param c The character to process.
+/// @return The character processed, or `EOF` if at the end of the file.
 inline int ConsoleBuffer::overflow(int c) {
   if (c != EOF) {
     if (parsing_ansi_code) {
@@ -115,8 +137,7 @@ inline int ConsoleBuffer::overflow(int c) {
         num_parse_stream << static_cast<char>(c);
       } else {
         switch (c) {
-          case 'm':  // end of ansi code; apply color formatting to new
-          {
+          case 'm': {  // End of ANSI code; apply color formatting to new sequence.
             parsing_ansi_code = false;
             int x;
             if (num_parse_stream >> x) {
@@ -126,22 +147,20 @@ inline int ConsoleBuffer::overflow(int c) {
             CurrentLine().sequences.emplace_back(cur_color_code, "");
             break;
           }
-          case '[': {
+          case '[':  // Start of ANSI sequence.
             listening_digits = true;
             num_parse_stream.clear();
             break;
-          }
-          case ';': {
+          case ';': { // Multiple ANSI codes; process current and prepare for next.
             int x;
             num_parse_stream >> x;
             num_parse_stream.clear();
             ProcessANSICode(x);
             break;
           }
-          default: {
+          default: // Invalid character in ANSI code.
             error = true;
             break;
-          }
         }
 
         if (error) {
@@ -155,29 +174,26 @@ inline int ConsoleBuffer::overflow(int c) {
       }
     } else {
       switch (c) {
-        case '\u001b': {
+        case '\u001b': // Start of an ANSI escape sequence.
           parsing_ansi_code = true;
           num_parse_stream.clear();
           break;
-        }
-        case '\n': {
-          // currentline add \n
+        case '\n': // End of line; add a new line.
           lines.emplace_back();
           CurrentLine().sequences.emplace_back(cur_color_code, "");
           break;
-        }
-        default: {
+        default: // Regular character, added to the current text sequence.
           CurrentWord() += static_cast<char>(c);
-        }
       }
     }
   }
   return c;
 }
 
+/// Initializes a ConsoleBuffer with an empty line and default color formatting.
 inline ConsoleBuffer::ConsoleBuffer() {
   lines.emplace_back();
-  // start a new run of chars with default formatting
+  // Start a new run of characters with default formatting.
   CurrentLine().sequences.emplace_back(AnsiColorCode::ANSI_WHITE, "");
 }
 
