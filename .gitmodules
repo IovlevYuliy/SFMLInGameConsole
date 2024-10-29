@@ -1,15 +1,20 @@
 [submodule "demos/3rdParty/imgui"]
 	path = demos/3rdParty/imgui
 	url = https://github.com/ocornut/imgui
+	update = none
 [submodule "demos/3rdParty/glhpp"]
 	path = demos/3rdParty/glhpp
 	url = https://github.com/Steve132/glhpp
+	update = none
 [submodule "demos/3rdParty/glfw"]
 	path = demos/3rdParty/glfw
 	url = https://github.com/glfw/glfw
+	update = none
 [submodule "demos/3rdParty/gl_hpp"]
 	path = demos/3rdParty/gl_hpp
 	url = https://github.com/VirtuosoChris/glhpp
+	update = none
 [submodule "demos/3rdParty/SFML"]
 	path = demos/3rdParty/SFML
 	url = git@github.com:SFML/SFML.git
+	update = none
