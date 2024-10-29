@@ -1,5 +1,6 @@
 # SFML In-Game Console
 A fork of the [Virtuoso Console](https://github.com/VirtuosoChris/VirtuosoConsole), this project extends its functionality by implementing an SFML-based console. Unlike the original repository, which uses IMGUI for rendering, this version leverages SFML as the rendering engine.
+![Screenshot from 2024-10-29 17-49-42](https://github.com/user-attachments/assets/d1729834-998a-4208-a3c7-fcc138ee4f67)
 
 # Overview
 The `SFMLInGameConsole` is a robust in-game console widget designed for SFML applications, offering Quake-style console functionality with color formatting, command history, and text autocompletion.
@@ -115,7 +116,6 @@ int main() {
   }
 }
 ```
-![Screenshot from 2024-10-29 17-49-42](https://github.com/user-attachments/assets/d1729834-998a-4208-a3c7-fcc138ee4f67)
 
 #### Customization
 
