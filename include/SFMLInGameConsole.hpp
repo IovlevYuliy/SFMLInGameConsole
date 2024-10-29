@@ -100,9 +100,12 @@ class SFMLInGameConsole : public Virtuoso::QuakeStyleConsole,
  public:
   // Default console background color.
   static constexpr sf::Color kDefaultBackgroundColor{0u, 0u, 0u, 140u};
+  // Default size of the command buffer for storing command history.
+  static constexpr size_t kCommandHistoryBufferSize = 100u;
 
   // Constructor that initializes the console with a given font.
-  SFMLInGameConsole(sf::Font font);
+  SFMLInGameConsole(sf::Font font,
+                    size_t command_history_size = kCommandHistoryBufferSize);
 
   // Setters for configuring console appearance and behavior.
 

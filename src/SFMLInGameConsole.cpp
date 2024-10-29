@@ -6,9 +6,6 @@ namespace sfe {
 
 namespace {
 
-// Size of the command buffer for storing command history.
-constexpr size_t kCommandBufferSize = 100;
-
 // Helper function to map ANSI color codes to SFML colors.
 inline sf::Color GetAnsiTextColor(AnsiColorCode code) {
   switch (code) {
@@ -46,8 +43,8 @@ inline std::string GetFirstWord(const std::string& str) {
 }  // namespace
 
 // Constructor for initializing the console with a font.
-SFMLInGameConsole::SFMLInGameConsole(sf::Font font)
-    : Virtuoso::QuakeStyleConsole(kCommandBufferSize),
+SFMLInGameConsole::SFMLInGameConsole(sf::Font font, size_t command_history_size)
+    : Virtuoso::QuakeStyleConsole(command_history_size),
       console_stream_(&console_buffer_),
       font_(std::move(font)) {
   AddStream(console_stream_);
@@ -361,8 +358,7 @@ void SFMLInGameConsole::TextAutocompleteCallback() {
     return;
   }
 
-  if (candidates.size() == 1) // Single match completion.
-  {
+  if (candidates.size() == 1) {  // Single match completion.
     buffer_text_.resize(word_start_pos + candidates[0].size());
     buffer_text_.replace(word_start_pos, candidates[0].size(), candidates[0]);
     cursor_pos_ = buffer_text_.size();
