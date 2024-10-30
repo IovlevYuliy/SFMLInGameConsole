@@ -389,16 +389,18 @@ void SFMLInGameConsole::TextAutocompleteCallback() {
       cursor_pos_ = buffer_text_.size();
     }
 
-    // Display possible matches.
-    (*this) << "Possible matches:\n";
+    int max_length = 0;
+    for (const auto& word : candidates) {
+      max_length = std::max(max_length, static_cast<int>(word.length()));
+    }
     constexpr static size_t kMatchesInLine = 5;
     for (size_t i = 0; i < candidates.size(); i++) {
       if (i && !(i % kMatchesInLine)) {
-        (*this) << '\n';
+        (*this) << std::endl;
       }
-      (*this) << candidates[i] << '\t';
+      (*this) << std::setw(max_length + 2) << std::left << candidates[i];
     }
-    (*this) << '\n';
+    (*this) << std::endl;
   }
 }
 
