@@ -58,7 +58,7 @@ void makeGLSLRules(Virtuoso::io::RegexFormatter::RuleSet& rules)
 
     {
            Virtuoso::io::RegexFormatter::Rule r;
-           r.rule = std::regex("\/\/.*");
+           r.rule = std::regex("\\/\\/.*");
         r.filter = std::bind(Virtuoso::io::highlightKeyword,   std::string(TEXT_COLOR_RED), std::placeholders::_1);
            rules.push_back(r);
     }
