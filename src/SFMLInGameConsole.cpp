@@ -1,6 +1,7 @@
 #include "SFMLInGameConsole.hpp"
 
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <cmath>
 
 namespace sfe {
 
@@ -86,7 +87,7 @@ void SFMLInGameConsole::SetCommandKeywords(const std::string& cmd_name,
 
 void SFMLInGameConsole::clear() {
   console_buffer_.clear();
-  scroll_offset_y_ = 0.F;
+  scroll_lines_offset_ = 0;
 }
 
 sf::Font* SFMLInGameConsole::Font() { return &font_; }
@@ -99,58 +100,27 @@ bool SFMLInGameConsole::visible() const { return shown_; }
 void SFMLInGameConsole::UpdateDrawnText() {
   // Clear and set up input line with the cursor at the appropriate position.
   input_line_.clear();
+  output_text_.clear();
+
   input_line_.setFont(font_);
   input_line_.setScale({font_scale_, font_scale_});
   input_line_ << "> " << buffer_text_.substr(0, cursor_pos_) << "_"
               << buffer_text_.substr(cursor_pos_);
 
-  const float input_line_height = input_line_.getGlobalBounds().height;
   const float console_height = background_rect_.getSize().y;
   const float left_offset =
       background_rect_.getSize().x * text_left_offset_part_;
-  const float free_height = console_height - input_line_height;
+  const float line_height =
+      font_scale_ * font_.getLineSpacing(input_line_.getCharacterSize());
+  const int visible_lines_count = std::floor(console_height / line_height) - 1;
 
   // Position input line at the bottom of the console.
-  input_line_.setPosition({left_offset, console_height - input_line_height});
+  input_line_.setPosition({left_offset, console_height - line_height});
 
-  // Prepare visible lines and text bounds for rendering.
+  // Get range of currently visible lines.
+  const int end = console_buffer_.size() - scroll_lines_offset_;
+  const int begin = std::max(end - visible_lines_count, 0);
   const auto& lines = console_buffer_.GetLines();
-  int last_line_idx = static_cast<int>(lines.size());
-  if (lines.back().IsEmpty()) {
-    --last_line_idx;
-  }
-
-  std::optional<int> first_visible_idx, last_visible_idx;
-  float hidden_bottom_part = 0.F;
-
-  sfe::RichText temp_text(font_);
-  temp_text.setScale({font_scale_, font_scale_});
-  for (int i = last_line_idx - 1; i >= 0; --i) {
-    for (const auto& seq : lines[i].sequences) {
-      temp_text << seq.text;
-    }
-    float text_height = temp_text.getLocalBounds().height * font_scale_;
-    if (scroll_offset_y_ > 0 && !last_visible_idx.has_value() &&
-        text_height > scroll_offset_y_) {
-      last_visible_idx = i;
-      hidden_bottom_part = text_height;
-      first_visible_idx.reset();
-    }
-    if (!first_visible_idx.has_value() &&
-        text_height > free_height + hidden_bottom_part) {
-      first_visible_idx = i + 1;
-    }
-    if (i) {
-      temp_text << "\n";
-    }
-  }
-
-  // Prepare and position the output text.
-  output_text_.clear();
-  output_text_.setFont(font_);
-  output_text_.setScale({font_scale_, font_scale_});
-  const int begin = first_visible_idx.value_or(0);
-  const int end = last_visible_idx.value_or(last_line_idx);
   for (int i = begin; i < end; ++i) {
     for (const auto& seq : lines[i].sequences) {
       if (!seq.text.empty()) {
@@ -162,15 +132,9 @@ void SFMLInGameConsole::UpdateDrawnText() {
     }
   }
 
-  all_lines_height_ = temp_text.getGlobalBounds().height;
-
-  // Adjust vertical position based on text height.
-  if (all_lines_height_ > free_height) {
-    output_text_.setPosition(
-        {left_offset, free_height - output_text_.getGlobalBounds().height});
-  } else {
-    output_text_.setPosition({left_offset, 0.F});
-  }
+  output_text_.setFont(font_);
+  output_text_.setPosition({left_offset, 0.F});
+  output_text_.setScale({font_scale_, font_scale_});
 
   // Apply current console position.
   output_text_.move(position_);
@@ -197,7 +161,7 @@ void SFMLInGameConsole::HandleUIEvent(const sf::Event& e) {
         buffer_text_.clear();
         history_pos_ = -1;
         cursor_pos_ = 0;
-        scroll_offset_y_ = 0;
+        scroll_lines_offset_ = 0;
         return;
       case sf::Keyboard::Tab:
         TextAutocompleteCallback();
@@ -255,16 +219,16 @@ void SFMLInGameConsole::Render(sf::RenderTarget* window) {
 
 // Adjusts scroll position based on key events.
 void SFMLInGameConsole::ScrollCallback(const sf::Event& e) {
-  const float input_line_height = input_line_.getGlobalBounds().height;
-  const float overflow_height = std::max(
-      all_lines_height_ - background_rect_.getSize().y + input_line_height,
-      0.F);
-  const float step =
-      font_.getLineSpacing(input_line_.getCharacterSize() * font_scale_);
+  const float line_height =
+      font_scale_ * font_.getLineSpacing(input_line_.getCharacterSize());
+  const int visible_lines_count =
+      std::floor(background_rect_.getSize().y / line_height) - 1;
+  const int overflow_lines =
+      std::max(console_buffer_.size() - visible_lines_count, 0);
   if (e.key.code == sf::Keyboard::Up) {
-    scroll_offset_y_ = std::min(scroll_offset_y_ + step, overflow_height);
+    scroll_lines_offset_ = std::min(scroll_lines_offset_ + 1, overflow_lines);
   } else if (e.key.code == sf::Keyboard::Down) {
-    scroll_offset_y_ = std::max(scroll_offset_y_ - step, 0.F);
+    scroll_lines_offset_ = std::max(scroll_lines_offset_ - 1, 0);
   }
 }
 

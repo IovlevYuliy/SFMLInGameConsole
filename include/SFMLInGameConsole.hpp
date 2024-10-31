@@ -170,8 +170,8 @@ class SFMLInGameConsole : public Virtuoso::QuakeStyleConsole,
 
   // Text buffer for console input.
   std::string buffer_text_;
-  // Vertical scroll offset for console content.
-  int scroll_offset_y_ = 0;
+  // Vertical scroll offset in lines for console content.
+  int scroll_lines_offset_ = 0;
   // Total height of all displayed lines.
   float all_lines_height_ = 0.F;
   // Max characters for a single line of input.

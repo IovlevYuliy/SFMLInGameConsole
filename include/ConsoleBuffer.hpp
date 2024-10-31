@@ -64,6 +64,10 @@ class ConsoleBuffer : public std::streambuf {
   // Returns all lines in the buffer.
   inline const std::vector<Line>& GetLines() const { return lines; }
 
+  // Returns number of lines.
+  // Excludes the last one if it's empty.
+  inline const int size() const;
+
  protected:
   // Streambuf override method for handling overflow.
   // This method is responsible for processing each character added to the
@@ -96,6 +100,14 @@ class ConsoleBuffer : public std::streambuf {
 // --------------------------------------
 // ---- ConsoleBuffer implementation -------
 // --------------------------------------
+
+inline const int ConsoleBuffer::size() const {
+  int lines_count = static_cast<int>(lines.size());
+  if (lines.back().IsEmpty()) {
+    --lines_count;
+  }
+  return lines_count;
+}
 
 inline void ConsoleBuffer::clear() {
   lines.clear();
@@ -137,7 +149,8 @@ inline int ConsoleBuffer::overflow(int c) {
         num_parse_stream << static_cast<char>(c);
       } else {
         switch (c) {
-          case 'm': {  // End of ANSI code; apply color formatting to new sequence.
+          case 'm': {  // End of ANSI code; apply color formatting to new
+                       // sequence.
             parsing_ansi_code = false;
             int x;
             if (num_parse_stream >> x) {
@@ -151,14 +164,15 @@ inline int ConsoleBuffer::overflow(int c) {
             listening_digits = true;
             num_parse_stream.clear();
             break;
-          case ';': { // Multiple ANSI codes; process current and prepare for next.
+          case ';': {  // Multiple ANSI codes; process current and prepare for
+                       // next.
             int x;
             num_parse_stream >> x;
             num_parse_stream.clear();
             ProcessANSICode(x);
             break;
           }
-          default: // Invalid character in ANSI code.
+          default:  // Invalid character in ANSI code.
             error = true;
             break;
         }
@@ -174,15 +188,15 @@ inline int ConsoleBuffer::overflow(int c) {
       }
     } else {
       switch (c) {
-        case '\u001b': // Start of an ANSI escape sequence.
+        case '\u001b':  // Start of an ANSI escape sequence.
           parsing_ansi_code = true;
           num_parse_stream.clear();
           break;
-        case '\n': // End of line; add a new line.
+        case '\n':  // End of line; add a new line.
           lines.emplace_back();
           CurrentLine().sequences.emplace_back(cur_color_code, "");
           break;
-        default: // Regular character, added to the current text sequence.
+        default:  // Regular character, added to the current text sequence.
           CurrentWord() += static_cast<char>(c);
       }
     }
