@@ -66,7 +66,7 @@ class ConsoleBuffer : public std::streambuf {
 
   // Returns number of lines.
   // Excludes the last one if it's empty.
-  inline const int size() const;
+  inline int size() const;
 
  protected:
   // Streambuf override method for handling overflow.
@@ -101,7 +101,7 @@ class ConsoleBuffer : public std::streambuf {
 // ---- ConsoleBuffer implementation -------
 // --------------------------------------
 
-inline const int ConsoleBuffer::size() const {
+inline int ConsoleBuffer::size() const {
   int lines_count = static_cast<int>(lines.size());
   if (lines.back().IsEmpty()) {
     --lines_count;
