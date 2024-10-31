@@ -327,6 +327,7 @@ void SFMLInGameConsole::TextAutocompleteCallback() {
     buffer_text_.replace(word_start_pos, candidates[0].size(), candidates[0]);
     cursor_pos_ = buffer_text_.size();
   } else {
+    scroll_lines_offset_ = 0;
     // Multiple matches - partial completion.
     // So inputing "C"+Tab will complete to "CL" then display "CLEAR" and
     // "CLASSIFY" as matches.
