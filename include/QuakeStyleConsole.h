@@ -42,12 +42,30 @@
 #include <unordered_map>
 #include <deque>
 #include <functional>
+#include <optional>
 #include <sstream>
 #include <memory>
 #include <string>
 
 namespace Virtuoso
 {
+
+template <typename T>
+std::istream& operator>>(std::istream& is, std::optional<T>& opt) {
+    const bool fail = is.fail(); // stream already has failbit
+    T value;
+    if (is >> value) {
+        opt = value;
+    } else {
+        opt.reset();
+    }
+    // Remove failbit if the string's end reached because it's optional argument.
+    // Do not remove if it has been set before.
+    if (is.eof() && !fail) {
+        is.clear(is.rdstate() & (~std::ifstream::failbit));
+    }
+    return is;
+}
 
 class QuakeStyleConsole
 {
