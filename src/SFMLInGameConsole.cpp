@@ -7,6 +7,8 @@ namespace sfe {
 
 namespace {
 
+constexpr size_t kMaxOptionsInLine = 5;
+
 // Helper function to map ANSI color codes to SFML colors.
 inline sf::Color GetAnsiTextColor(AnsiColorCode code) {
   switch (code) {
@@ -311,6 +313,38 @@ std::vector<std::string> SFMLInGameConsole::GetCandidatesForAutocomplete(
   return candidates;
 }
 
+void SFMLInGameConsole::PrintOptions(const std::vector<std::string>& options) {
+  if (options.empty()) {
+    return;
+  }
+  int longest_word_idx = 0;
+  for (int i = 0; i < static_cast<int>(options.size()); ++i) {
+    if (options[i].size() > options[longest_word_idx].size()) {
+      longest_word_idx = i;
+    }
+  }
+  const float console_width = background_rect_.getSize().x;
+  size_t options_in_line = 0;
+  sfe::RichText one_line(font_);
+  one_line.setScale({font_scale_, font_scale_});
+  while (options_in_line < kMaxOptionsInLine) {
+    one_line << options[longest_word_idx] << "  ";
+    if (one_line.getGlobalBounds().getSize().x > console_width) {
+      break;
+    }
+    ++options_in_line;
+  }
+  options_in_line = std::max(options_in_line, 1ul);
+  const int max_length = static_cast<int>(options[longest_word_idx].size());
+  for (size_t i = 0; i < options.size(); i++) {
+    if (i && !(i % options_in_line)) {
+      (*this) << std::endl;
+    }
+    (*this) << std::setw(max_length + 2) << std::left << options[i];
+  }
+  (*this) << std::endl;
+}
+
 // Handles autocompletion logic based on input and available suggestions.
 void SFMLInGameConsole::TextAutocompleteCallback() {
   // Locate beginning of current word.
@@ -370,18 +404,7 @@ void SFMLInGameConsole::TextAutocompleteCallback() {
       cursor_pos_ = buffer_text_.size();
     }
 
-    int max_length = 0;
-    for (const auto& word : candidates) {
-      max_length = std::max(max_length, static_cast<int>(word.length()));
-    }
-    constexpr static size_t kMatchesInLine = 5;
-    for (size_t i = 0; i < candidates.size(); i++) {
-      if (i && !(i % kMatchesInLine)) {
-        (*this) << std::endl;
-      }
-      (*this) << std::setw(max_length + 2) << std::left << candidates[i];
-    }
-    (*this) << std::endl;
+    PrintOptions(candidates);
   }
 }
 

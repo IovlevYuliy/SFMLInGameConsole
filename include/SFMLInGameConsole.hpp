@@ -122,9 +122,12 @@ class SFMLInGameConsole : public Virtuoso::QuakeStyleConsole,
   // Sets the console's height as a fraction of the render target height.
   void SetConsoleHeightPart(float height_part);
 
-  /// Registers command keywords for autocomplete functionality.
+  // Registers command keywords for autocomplete functionality.
   void SetCommandKeywords(const std::string& cmd_name,
                           std::vector<std::string> keywords);
+
+  // Print vector of options into console aligning them into columns.
+  void PrintOptions(const std::vector<std::string>& options);
 
   // Returns pointer to the current font.
   sf::Font* Font();
@@ -175,8 +178,6 @@ class SFMLInGameConsole : public Virtuoso::QuakeStyleConsole,
   std::string buffer_text_;
   // Vertical scroll offset in lines for console content.
   int scroll_lines_offset_ = 0;
-  // Total height of all displayed lines.
-  float all_lines_height_ = 0.F;
   // Max characters for a single line of input.
   size_t max_input_line_symbols_ = 100u;
   // Left offset for console text rendering.

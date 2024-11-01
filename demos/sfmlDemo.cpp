@@ -50,13 +50,17 @@ int main() {
       },
       "Print sum of given numbers");
 
-  console.SetCommandKeywords("sum", { "10", "100", "200", "300" });
+  console.SetCommandKeywords("sum", {"10", "100", "200", "300"});
 
   while (window.isOpen()) {
     sf::Event event;
     while (window.pollEvent(event)) {
       if (console.visible()) {
         console.HandleUIEvent(event);
+      }
+      if (event.type == sf::Event::Resized) {
+        window.setView(sf::View(sf::FloatRect(
+            {0.F, 0.F}, sf::Vector2f(event.size.width, event.size.height))));
       }
       if (event.type == sf::Event::KeyPressed &&
           event.key.code == sf::Keyboard::F10) {
