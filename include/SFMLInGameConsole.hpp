@@ -149,6 +149,9 @@ class SFMLInGameConsole : public Virtuoso::QuakeStyleConsole,
       const sf::Event& e);          // Handles up/down history navigation.
   void TextAutocompleteCallback();  // Handles text autocomplete actions.
 
+  // Returns number of lines that are out of visible console area.
+  int GetOverflowLinesCount() const;
+
   /// Gets possible autocomplete suggestions for a word, based on commands and
   /// keywords.
   std::vector<std::string> GetCandidatesForAutocomplete(

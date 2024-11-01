@@ -180,6 +180,18 @@ void SFMLInGameConsole::HandleUIEvent(const sf::Event& e) {
           HistoryCallback(e);
         }
         return;
+      case sf::Keyboard::PageUp:
+        scroll_lines_offset_ = GetOverflowLinesCount();
+        return;
+      case sf::Keyboard::PageDown:
+        scroll_lines_offset_ = 0;
+        return;
+      case sf::Keyboard::Home:
+        cursor_pos_ = 0;
+        return;
+      case sf::Keyboard::End:
+        cursor_pos_ = static_cast<int>(buffer_text_.size());
+        return;
       case sf::Keyboard::Left:
         cursor_pos_ = cursor_pos_ > 0 ? cursor_pos_ - 1 : 0;
         return;
@@ -217,14 +229,18 @@ void SFMLInGameConsole::Render(sf::RenderTarget* window) {
   window->draw(input_line_);
 }
 
-// Adjusts scroll position based on key events.
-void SFMLInGameConsole::ScrollCallback(const sf::Event& e) {
+// Returns number of lines that are out of visible console area.
+int SFMLInGameConsole::GetOverflowLinesCount() const {
   const float line_height =
       font_scale_ * font_.getLineSpacing(input_line_.getCharacterSize());
   const int visible_lines_count =
       std::floor(background_rect_.getSize().y / line_height) - 1;
-  const int overflow_lines =
-      std::max(console_buffer_.size() - visible_lines_count, 0);
+  return std::max(console_buffer_.size() - visible_lines_count, 0);
+}
+
+// Adjusts scroll position based on key events.
+void SFMLInGameConsole::ScrollCallback(const sf::Event& e) {
+  const int overflow_lines = GetOverflowLinesCount();
   if (e.key.code == sf::Keyboard::Up) {
     scroll_lines_offset_ = std::min(scroll_lines_offset_ + 1, overflow_lines);
   } else if (e.key.code == sf::Keyboard::Down) {
