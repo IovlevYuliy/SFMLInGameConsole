@@ -132,4 +132,5 @@ This project is dual-licensed under either the **MIT License** or **Public Domai
 
 # Credits
 * **Forked from**: [Virtuoso Console](https://github.com/VirtuosoChris/VirtuosoConsole)
+* **Used**: [RichText](https://github.com/skyrpex/RichText) is public domain or under the MIT license
 * **Extended by**: Yuliy Iovlev (October 26, 2024)
