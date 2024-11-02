@@ -324,25 +324,28 @@ void SFMLInGameConsole::PrintOptions(const std::vector<std::string>& options) {
     }
   }
   const float console_width = background_rect_.getSize().x;
-  size_t options_in_line = 0;
+  size_t cols = 0;
   sfe::RichText one_line(font_);
   one_line.setScale({font_scale_, font_scale_});
-  while (options_in_line < kMaxOptionsInLine) {
+  while (cols < kMaxOptionsInLine) {
     one_line << options[longest_word_idx] << "  ";
     if (one_line.getGlobalBounds().getSize().x > console_width) {
       break;
     }
-    ++options_in_line;
+    ++cols;
   }
-  options_in_line = std::max(options_in_line, 1ul);
+  cols = std::max(cols, 1ul);
   const int max_length = static_cast<int>(options[longest_word_idx].size());
-  for (size_t i = 0; i < options.size(); i++) {
-    if (i && !(i % options_in_line)) {
-      (*this) << std::endl;
+  const size_t rows = (options.size() + cols - 1) / cols;
+  for (size_t row = 0; row < rows; ++row) {
+    for (size_t col = 0; col < cols; ++col) {
+      const size_t idx = rows * col + row;
+      if (idx < options.size()) {
+        (*this) << std::setw(max_length + 2) << std::left << options[idx];
+      }
     }
-    (*this) << std::setw(max_length + 2) << std::left << options[i];
+    (*this) << std::endl;
   }
-  (*this) << std::endl;
 }
 
 // Handles autocompletion logic based on input and available suggestions.
