@@ -334,7 +334,7 @@ void SFMLInGameConsole::PrintOptions(const std::vector<std::string>& options) {
     }
     ++cols;
   }
-  cols = std::max(cols, 1ul);
+  cols = std::max<size_t>(cols, 1);
   const int max_length = static_cast<int>(options[longest_word_idx].size());
   const size_t rows = (options.size() + cols - 1) / cols;
   for (size_t row = 0; row < rows; ++row) {
