@@ -323,18 +323,17 @@ void SFMLInGameConsole::PrintOptions(const std::vector<std::string>& options) {
       longest_word_idx = i;
     }
   }
+  // Add 2 spaces for columns gap.
+  sf::Text one_word(font_, options[longest_word_idx] + "  ");
+  one_word.setScale({font_scale_, font_scale_});
+
+  const float col_width = one_word.getGlobalBounds().getSize().x;
   const float console_width = background_rect_.getSize().x;
-  size_t cols = 0;
-  sfe::RichText one_line(font_);
-  one_line.setScale({font_scale_, font_scale_});
-  while (cols < kMaxOptionsInLine) {
-    one_line << options[longest_word_idx] << "  ";
-    if (one_line.getGlobalBounds().getSize().x > console_width) {
-      break;
-    }
-    ++cols;
-  }
-  cols = std::max<size_t>(cols, 1);
+
+  const size_t cols = std::clamp<size_t>(
+      static_cast<size_t>(std::floor(console_width / col_width)), 1,
+      kMaxOptionsInLine);
+
   const int max_length = static_cast<int>(options[longest_word_idx].size());
   const size_t rows = (options.size() + cols - 1) / cols;
   for (size_t row = 0; row < rows; ++row) {
