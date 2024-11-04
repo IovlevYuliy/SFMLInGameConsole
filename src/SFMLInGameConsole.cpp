@@ -237,7 +237,8 @@ int SFMLInGameConsole::GetOverflowLinesCount() const {
       font_scale_ * font_.getLineSpacing(input_line_.getCharacterSize());
   const int visible_lines_count =
       std::floor(background_rect_.getSize().y / line_height) - 1;
-  return std::max(console_buffer_.size() - visible_lines_count, 0);
+  return std::max(
+      static_cast<int>(console_buffer_.size()) - visible_lines_count, 0);
 }
 
 // Adjusts scroll position based on key events.
