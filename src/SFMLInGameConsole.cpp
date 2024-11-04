@@ -359,9 +359,12 @@ void SFMLInGameConsole::TextAutocompleteCallback() {
     word_start_pos--;
   }
 
-  const bool is_first_word = std::all_of(
-      buffer_text_.begin(), buffer_text_.begin() + word_start_pos - 1,
-      [](const char c) { return std::isspace(static_cast<unsigned char>(c)); });
+  const bool is_first_word =
+      !word_start_pos ||
+      std::all_of(buffer_text_.begin(),
+                  buffer_text_.begin() + word_start_pos - 1, [](const char c) {
+                    return std::isspace(static_cast<unsigned char>(c));
+                  });
 
   const std::string cur_word =
       buffer_text_.substr(word_start_pos, cursor_pos_ - word_start_pos);
