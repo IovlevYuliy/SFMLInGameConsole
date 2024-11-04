@@ -902,15 +902,12 @@ inline const std::deque<std::string> &Virtuoso::QuakeStyleConsole::historyBuffer
 inline void Virtuoso::QuakeStyleConsole::dereferenceVariables(std::istream &is, std::ostream &os, std::string &str)
 {
     size_t varBase = 0;
-    int n = 0;
 
     while ((varBase = str.find('$', varBase)) != str.npos)
     {
         size_t substrEnd = varBase;
         size_t dollar = varBase;
         varBase++;
-
-        n++;
 
         for (; ((substrEnd < str.size()) && (!isspace(str[substrEnd]))); substrEnd++)
             ;
