@@ -60,8 +60,8 @@ SFMLInGameConsole::SFMLInGameConsole(sf::Font font, size_t command_history_size)
            {"\u001b[37m> ", std::string(TEXT_COLOR_RESET)}};
 }
 
-void SFMLInGameConsole::SetBackgroundColor(sf::Color color) {
-  background_color_ = std::move(color);
+void SFMLInGameConsole::SetBackgroundColor(const sf::Color& color) {
+  background_color_ = color;
 }
 
 void SFMLInGameConsole::SetFontScale(float scale) { font_scale_ = scale; }
@@ -71,7 +71,7 @@ void SFMLInGameConsole::SetMaxInputLineSymbols(size_t count) {
 }
 
 void SFMLInGameConsole::SetPosition(sf::Vector2f pos) {
-  position_ = std::move(pos);
+  position_ = pos;
 }
 
 void SFMLInGameConsole::SetTextLeftOffset(float offset_part) {

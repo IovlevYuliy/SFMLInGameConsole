@@ -110,7 +110,7 @@ class SFMLInGameConsole : public Virtuoso::QuakeStyleConsole,
   // Setters for configuring console appearance and behavior.
 
   // Sets the console background color.
-  void SetBackgroundColor(sf::Color color);
+  void SetBackgroundColor(const sf::Color& color);
   // Sets the font scaling factor.
   void SetFontScale(float scale);
   // Sets the position of the console relative to the render target.
