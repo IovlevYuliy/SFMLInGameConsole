@@ -28,7 +28,7 @@ int main() {
   const bool loaded = font.loadFromFile("FreeMono.ttf");
   assert(loaded && "Unable to load font FreeMono.ttf");
 
-  sfe::SFMLInGameConsole console(font);
+  sfe::SFMLInGameConsole console(font, 100, true);
   console.show(true);
   console.SetTextLeftOffset(0.F);
   console.SetMaxInputLineSymbols(30);

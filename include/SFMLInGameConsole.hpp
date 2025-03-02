@@ -105,7 +105,8 @@ class SFMLInGameConsole : public Virtuoso::QuakeStyleConsole,
 
   // Constructor that initializes the console with a given font.
   SFMLInGameConsole(sf::Font font,
-                    size_t command_history_size = kCommandHistoryBufferSize);
+                    size_t command_history_size = kCommandHistoryBufferSize,
+                    bool enable_prebinded_commands = false);
 
   // Setters for configuring console appearance and behavior.
 

@@ -46,14 +46,19 @@ inline std::string GetFirstWord(const std::string& str) {
 }  // namespace
 
 // Constructor for initializing the console with a font.
-SFMLInGameConsole::SFMLInGameConsole(sf::Font font, size_t command_history_size)
-    : Virtuoso::QuakeStyleConsole(command_history_size),
+SFMLInGameConsole::SFMLInGameConsole(sf::Font font, size_t command_history_size,
+                                     bool enable_prebinded_commands)
+    : Virtuoso::QuakeStyleConsole(command_history_size, enable_prebinded_commands),
       console_stream_(&console_buffer_),
       font_(std::move(font)) {
   AddStream(console_stream_);
 
   bindMemberCommand("clear", *this, &SFMLInGameConsole::clear,
                     "Clear the console");
+
+  bindCommand("help", [this](std::istream &is, std::ostream &os)
+              { this->commandHelp(is, os); }, "you're a smartass");
+
   // Overrides default styling for different message types.
   style = {{"\u001b[31m[error]: ", std::string(TEXT_COLOR_RESET)},
            {"\u001b[33m[warning]: ", std::string(TEXT_COLOR_RESET)},

@@ -80,7 +80,7 @@ class QuakeStyleConsole
     typedef std::unordered_map<std::string, std::string> HelpTable;
 
     /// Constructor binds the default commands to the command table & initializes history buffer
-    QuakeStyleConsole(std::size_t maxHistory = defaultHistorySize);
+    QuakeStyleConsole(std::size_t maxHistory = defaultHistorySize, bool enablePrebindedCommands = true);
 
     // --------------------------------------//
     /* --------- COMMAND EXECUTION --------- */
@@ -142,6 +142,12 @@ class QuakeStyleConsole
 
     /// the bindCommand that actually does the work of adding commands to the table AFTER they've been coerced to a ConsoleFunc that takes the input/output from executeCommand.  Takes optional help string.
     void bindCommand(const std::string &commandName, ConsoleFunc f, const std::string &help = "");
+
+    /// unbind a command from the console
+    void unbindCommand(const std::string &commandName);
+
+    /// unbind all commands from the console
+    void unbindAll();
 
     // ------------------------------------//
     /* --------- HISTORY FILES ----------- */
@@ -431,7 +437,7 @@ inline void Virtuoso::QuakeStyleConsole::conditionalExecute(std::istream &is, st
 {
     if (is.fail())
     {
-        os << error() << "Syntax error in function arguments." << std::endl;
+        os << error() << "Syntax error in function arguments. See help <cmd>." << std::endl;
         is.clear();
     }
     else
@@ -526,6 +532,16 @@ inline void Virtuoso::QuakeStyleConsole::bindCommand(const std::string &str, Con
         setHelpTopic(str, help);
 
     commandTable[str] = fun;
+}
+
+inline void Virtuoso::QuakeStyleConsole::unbindCommand(const std::string &commandName) {
+    commandTable.erase(commandName);
+    helpTable.erase(commandName);
+}
+
+inline void Virtuoso::QuakeStyleConsole::unbindAll() {
+    commandTable.clear();
+    helpTable.clear();
 }
 
 inline void Virtuoso::QuakeStyleConsole::setHelpTopic(const std::string &str, const std::string &data)
@@ -636,9 +652,7 @@ inline void Virtuoso::QuakeStyleConsole::executeFile(const std::string &x, std::
 
 inline void Virtuoso::QuakeStyleConsole::commandHelp(std::istream &is, std::ostream &os)
 {
-    const char *genericHelp = "Type 'help' followed by the name of a command or variable to get help on that topic if available."
-                              "\nType listCmd, listVars, and listHelp to print lists of the available commands, variables, and help topics."
-                              "\nUse $<varname> to dereference a variable in a command argument list and use # to comment the rest of a line";
+    const char *genericHelp = "Type 'help' followed by the name of a command or variable to get help on that topic if available.";
 
     std::string x;
 
@@ -843,8 +857,7 @@ inline void Virtuoso::QuakeStyleConsole::bindBasicCommands()
         std::string f;
         is >> f;
         this->executeFile(f, os);
-    },
-                "runs the commands in a text file named by the argument");
+    }, "runs the commands in a text file named by the argument");
 }
 
 inline bool Virtuoso::QuakeStyleConsole::loadHistoryBuffer(const std::string &inFile)
@@ -938,10 +951,13 @@ inline void Virtuoso::QuakeStyleConsole::dereferenceVariables(std::istream &is, 
     }
 }
 
-inline Virtuoso::QuakeStyleConsole::QuakeStyleConsole(size_t maxCapacity)
+inline Virtuoso::QuakeStyleConsole::QuakeStyleConsole(size_t maxCapacity, bool enablePrebindedCommands)
     : history_buffer(maxCapacity)
 {
-    bindBasicCommands();
+    if (enablePrebindedCommands)
+    {
+        bindBasicCommands();
+    }
 }
 
 template <typename O, typename... Args>
