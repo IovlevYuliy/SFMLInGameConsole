@@ -145,6 +145,9 @@ class SFMLInGameConsole : public Virtuoso::QuakeStyleConsole,
   // renderable).
   void Render(sf::RenderTarget* window);
 
+  // Returns current typing console line.
+  const std::string& GetCurrentText() const;
+
  private:
   // Event handlers and internal functionality for specific input and rendering
   // behaviors.

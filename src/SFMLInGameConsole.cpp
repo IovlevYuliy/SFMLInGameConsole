@@ -97,6 +97,10 @@ void SFMLInGameConsole::show(bool v) { shown_ = v; }
 
 bool SFMLInGameConsole::visible() const { return shown_; }
 
+const std::string& SFMLInGameConsole::GetCurrentText() const {
+  return buffer_text_;
+}
+
 /// Updates the rendered text based on the console's internal state and buffer.
 void SFMLInGameConsole::UpdateDrawnText() {
   // Clear and set up input line with the cursor at the appropriate position.
