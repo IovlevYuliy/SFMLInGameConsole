@@ -1,6 +1,8 @@
 demos/build
+demos/out
 
 .vscode/
+.vs/
 
 *.ignore
 *.cmake
