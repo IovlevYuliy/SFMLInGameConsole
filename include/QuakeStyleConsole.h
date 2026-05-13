@@ -205,6 +205,9 @@ class QuakeStyleConsole
     inline const CVarPrintTable &getCVarPrintTable() const { return cvarPrintFTable; }
     inline const HelpTable &getHelpTable() const { return helpTable; }
 
+    ///prints help on a topic if the user types help < topic >, or a generic help message if the user just types help
+    void commandHelp(std::istream&, std::ostream&);
+
   protected:
     /// WindowedQueue - We implement a ring buffer for the command history as a queue
     template <class T>
@@ -303,9 +306,6 @@ class QuakeStyleConsole
 
     ///the function associated with built in command "echo", which prints the value of a cvar if it is bound. if not, reports an error.
     void commandEcho(std::istream &is, std::ostream &os);
-
-    ///prints help on a topic if the user types help < topic >, or a generic help message if the user just types help
-    void commandHelp(std::istream &, std::ostream &);
 
     ///creates a string variable from the console
     void commandVar();
