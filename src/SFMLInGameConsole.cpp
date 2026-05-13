@@ -53,11 +53,13 @@ SFMLInGameConsole::SFMLInGameConsole(sf::Font font, size_t command_history_size,
       font_(std::move(font)) {
   AddStream(console_stream_);
 
-  bindMemberCommand("clear", *this, &SFMLInGameConsole::clear,
-                    "Clear the console");
+  if (enable_prebinded_commands) {
+    bindMemberCommand("clear", *this, &SFMLInGameConsole::clear,
+        "Clear the console");
 
-  bindCommand("help", [this](std::istream &is, std::ostream &os)
-              { this->commandHelp(is, os); }, "you're a smartass");
+    bindCommand("help", [this](std::istream& is, std::ostream& os)
+        { this->commandHelp(is, os); }, "you're a smartass");
+  }
 
   // Overrides default styling for different message types.
   style = {{"\u001b[31m[error]: ", std::string(TEXT_COLOR_RESET)},
